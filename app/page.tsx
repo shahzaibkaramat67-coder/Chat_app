@@ -1,65 +1,147 @@
+"use client";
+
+import Sidebar from "@/components/sidbar";
 import Image from "next/image";
+import icons from "@/Assets/asset";
+import Popup from "@/components/popup"
+import { useState } from "react";
+import Profile from "@/components/profile"
+import Threedot from "@/components/threedot";
+import Chat from "@/components/newChat";
+import Search from "@/components/search"
+import Project from "@/components/project";
+import UserInputSection from "@/app/chat/UserInput/page"
+import ChatMessages from "@/app/chat/message/page"
+import { useEffect } from "react";
+import { NextResponse } from "next/server";
+// import UserInputShowSection from "@/app/chat/UserInputShow/page"
 
 export default function Home() {
+  const [expand, setExpand] = useState(true);
+  const [popup, setpopup] = useState(false)
+  const [profile, setprofile] = useState(false)
+  const [threedot, setthreedot] = useState(false)
+  const [chat, setChat] = useState(false)
+  const [search, setsearch] = useState(false)
+  const [project, setproject] = useState(false)
+  const [messages, setMessages] = useState([])
+  const [loading, setloading] = useState(false)
+
+  console.log("this is from mian page messages", messages);
+
+   useEffect(() => {
+    console.log("UPDATED messages:", messages);
+  }, [messages]);
+
+   useEffect(()=>{
+     const getMessage = async ()=>{
+      try {
+        const res = await fetch("/Api/Chat")
+        const data =await res.json()
+        setMessages( data.messages || [] )
+      } catch (error) {
+        console.error("Fetch error:", error);
+        
+      }
+     }
+
+     getMessage()
+
+}, [])
+
+
+
+
+
+
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+
+      {/* Sidebar */}
+      <Sidebar
+        expand={expand}
+        setExpand={setExpand}
+        setprofile={setprofile}
+        setChat={setChat}
+        setsearch={setsearch}
+        setproject={setproject}
+      />
+
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col relative">
+
+        {/* 🔝 Top Navbar */}
+        <div className="flex justify-between items-center px-4 py-3 border-b bg-white">
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setExpand(!expand)}
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100"
           >
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+              src={icons.barsSolidFull}
+              alt="menu"
+              width={18}
+              height={18}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </button>
+
+          {/* Right Icons */}
+          <div className="flex gap-2 ml-auto">
+            <div className="h-9 w-9 rounded-full bg-amber-500 flex items-center justify-center cursor-pointer">
+              <Image
+                onClick={() => setpopup(!popup)}
+                src={icons.sharesolidfull}
+                alt="share"
+                width={18}
+                height={18}
+              />
+            </div>
+
+            <div className="h-9 w-9 rounded-full bg-amber-500 flex items-center justify-center cursor-pointer">
+              <Image
+                onClick={() => setthreedot(!threedot)}
+                src={icons.ellipsisSolidFull}
+                alt="menu"
+                width={18}
+                height={18}
+              />
+            </div>
+          </div>
         </div>
-      </main>
+
+        {/* 🔘 Overlays / Modals */}
+        {threedot && <Threedot />}
+        {chat && <Chat setChat={setChat} />}
+        {search && <Search setSearch={setsearch} />}
+        {project && <Project setproject={setproject} />}
+        {popup && <Popup popup={popup} setpopup={setpopup} />}
+        {profile && <Profile setprofile={setprofile} />}
+
+        {/* 💬 Chat Messages Area */}
+        <div className="flex-1 overflow-y-auto px-4 py-4">
+          <div className="max-w-3xl w-full mx-auto my-auto">
+            <ChatMessages 
+            messages={messages}
+             />
+          </div>
+
+        </div>
+
+        {/* ✍️ Input Section (Fixed Bottom Feel) */}
+
+        <div className="h">
+          <UserInputSection
+            setmessages={setMessages}
+            messages={messages}
+            loading={loading}
+            setloading={setloading}
+          />
+        </div>
+
+
+      </div>
     </div>
   );
 }
