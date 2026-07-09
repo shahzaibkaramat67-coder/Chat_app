@@ -8,17 +8,17 @@ const userSchema = new Schema(
     },
 
     email: {
-  type: String,
-  required: true,
-  unique: true,
-  lowercase: true,
-  trim: true,
-},
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
 
     password: {
       type: String,
       default: null, // IMPORTANT
-      select : false
+      select: false
     },
 
     image: {
@@ -37,11 +37,11 @@ const userSchema = new Schema(
       default: null,
     },
 
-    
-    
+
+
     refreshToken: String,
     refreshTokenExpiry: Date,
-    
+
     accessToken: String,
     accessTokenExpiry: Date,
 

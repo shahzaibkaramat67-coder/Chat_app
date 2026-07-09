@@ -4,9 +4,11 @@ import { NextResponse } from "next/server";
 export async function proxy(req) {
     const token = req.cookies.get("AccessToken")?.value;
 
+
     if (!token) {
-        return NextResponse.redirect(
-            new URL("/login", req.url)
+        return NextResponse.json(
+            { redirect: "/login" },
+            { status: 401 }
         );
     }
 
@@ -24,4 +26,15 @@ export async function proxy(req) {
             { status: 401 }
         );
     }
+}
+
+
+export const config = {
+    matcher: [
+        // "/:path*",
+        "/Api/:path*",
+        "/dashboard/:path*",
+        "/profile/:path*",
+        "/settings/:path*",
+    ]
 }

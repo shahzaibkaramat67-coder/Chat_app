@@ -7,7 +7,7 @@ async function AiFunction(text) {
   try {
 
     console.log("here stating the AI work");
-    
+
 
     const response = await fetch("http://localhost:11434/api/generate", {
       method: "post",

@@ -7,6 +7,11 @@ const messageSchema = new Schema(
       ref: "Chat",
       // required: true,
     },
+    messageID: {
+      type: String,
+      required: true,
+      unique: true
+    },
 
     role: {
       type: String,
@@ -14,7 +19,7 @@ const messageSchema = new Schema(
       required: true,
     },
 
-     content: {
+    content: {
       type: String,
       required: true,
     },

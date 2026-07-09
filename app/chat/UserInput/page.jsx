@@ -13,42 +13,44 @@ function UserInputSection({ messages = [], setmessages, loading, setloading }) {
 
   const sendHendeler = async () => {
     if (!input.trim()) return null
-
-
-
+    
+    
+    
     const userInput = input.trim()
 
     console.log("userInput", userInput);
-  const userID = crypto.randomUUID()
+    const userMessageID = crypto.randomUUID()
+    const aiMessageID = crypto.randomUUID()
+    const fullChatId = crypto.randomUUID()
 
     setmessages((prev) => [
       ...prev,    
-      {id : userID, role: "user", content: userInput }
+      {id : userMessageID, fullChatId:fullChatId, role: "user", content: userInput }
     ])
 
     setInput("");
 
     setloading(true)
 
-    const aiID = crypto.randomUUID()
 
 
     setmessages((prev) => [
       ...prev,
-      { id: aiID, role: "assistant", content: "", loading: true }
+      { id: aiMessageID, fullChatId:fullChatId, role: "assistant", content: "", loading: true }
       // { role: "assistant", message: data.ApiReply, loading : true }
     ])
 
 
-
+ 
     const res = await fetch("/Api/Chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ text: userInput, userId : userID}),
+      body: JSON.stringify({ text: userInput, userMessageID : userMessageID, fullChatId:fullChatId}),
     });
-
+    console.log("response :", res);
+    
     if(res.status === 401){
        
     const refreshToken = await fetch("/Api/refresh-token", {
@@ -57,7 +59,7 @@ function UserInputSection({ messages = [], setmessages, loading, setloading }) {
     })
    
     if (refreshToken.ok) {
-      return route.push("/")
+      return route.push("/login")
       
     }else{
       
@@ -94,8 +96,8 @@ function UserInputSection({ messages = [], setmessages, loading, setloading }) {
 
             setmessages(prev =>
               prev.map(msg =>
-                msg.id === aiID
-                  ? { ...msg, content: fullText, loading: false }
+                msg.id === aiMessageID
+                  ? { ...msg, fullChatId:fullChatId, content: fullText, loading: false }
                   : msg
               )
             );
@@ -125,10 +127,15 @@ setloading(false)
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        aiMessageID : aiMessageID,
         role: "assistant",
-        message: fullText
+        content: fullText,
+        fullChatId : fullChatId
       })
     })
+
+    console.log(" res2 :", res2);
+    
 
 
 

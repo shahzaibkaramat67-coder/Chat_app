@@ -26,46 +26,57 @@ export async function POST(req) {
     await dbConnection()
 
     const body = await req.json();
+
+
     console.log("here CHat route body", body);
     const user = await getToken(req)
+    if (!user) {
+      return NextResponse.json(
+        { status: 401 },
+        { redirect: "/login" }
+      )
+
+    }
     console.log("this is from CHat route body", user);
 
-    const { text, userId } = body;
+
+
+    const { text, userMessageID, fullChatId } = body;
     console.log("this is also from chat route", text);
 
-    const chatId = await Chat.findOne({ userId })
+    const fullChat = await Chat.findOne({ fullChatId })
 
-    console.log("chatId", chatId);
+    console.log("chatId", fullChat);
 
 
-    if (!chatId) {
+    if (!fullChat) {
 
-      const saveUserData = await Chat.create({
-        userId: user._id,
-        chatId,
-        title: title.slice(0, 30)
+      const createChat = await Chat.create({
+        userId: user,
+        fullChatId: fullChatId,
+        title: text.slice(0, 30)
 
       })
+
+      const createMessageForChat = await Message.create({
+        fullChatId: fullChatId,
+        messageID: userMessageID,
+        role: "user",
+        content: text
+      })
+
     } else {
 
       const saveUserData = await Message.create({
-        chatId: chat_id,
+        fullChatId: fullChatId,
+        messageID: userMessageID,
         role: "user",
         content: text
       })
 
     }
 
-
-
-
-
-
-
-
-
-
-    console.log("this is from chat route saveUserData", saveUserData);
+    // console.log("this is from chat route saveUserData", saveUserData);
 
 
 
@@ -78,11 +89,14 @@ export async function POST(req) {
     }
 
 
-    const saveAIData = await Message.create({
-      role: "assistant",
-      message: ApiReply
+    // const saveAIData = await Message.create({
+    //   userId: user._id,
+    //   chatId: fullChatId,
+    //   messageID: aiMessageID,
+    //   role: "assistant",
+    //   messageID: ApiReply
 
-    })
+    // })
 
 
 
