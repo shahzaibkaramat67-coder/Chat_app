@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { model } from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
 // const Client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
@@ -9,6 +10,7 @@ async function AiFunction(text) {
     console.log("here stating the AI work");
 
 
+
     const response = await fetch("http://localhost:11434/api/generate", {
       method: "post",
       headers: {
@@ -16,7 +18,8 @@ async function AiFunction(text) {
       },
 
       body: JSON.stringify({
-        model: "deepseek-coder:1.3b",
+        // model = "deepseek-coder:1.3b",
+        model = "qwen3:4b",
         prompt: `
                       You are a senior software engineer.
 

@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import Link from "next/link";
 import z from 'zod';
+import { get } from 'http';
 
 
 const schema = z.object({
@@ -83,8 +84,11 @@ function SignupPage() {
 
   }
 
+ async function google_Auth() {
+   
+    location.assign("/Auth/google_Auth")
 
-
+  }
 
 
 
@@ -172,7 +176,7 @@ function SignupPage() {
         </div>
 
         {/* Social Login */}
-        <button className="w-full border py-2 rounded-lg text-black flex items-center justify-center gap-2 hover:bg-gray-100 transition">
+        <button onClick={google_Auth} className="w-full border py-2 rounded-lg text-black flex items-center justify-center gap-2 hover:bg-gray-100 transition">
           <span>🔵</span>
           Continue with Google
         </button>
