@@ -1,119 +1,90 @@
 "use client";
-import { useState } from "react";
+
 import Image from "next/image";
 import icons from "../Assets/asset.js";
-import History from "@/components/history.jsx"
-// import Chat from "@/components/newChat.jsx"
+import History from "@/components/history.jsx";
 
-function Sidebar({ expand, setExpand, setprofile, setChat, setsearch, setproject}) {
-
-  // const [profile, setprofile] = useState(true)
-
-    const manuItems =[
-                { icon: icons.pencilSolidFull, label: "New Chat", action : () => setChat(true) },
-                { icon: icons.magnifyingGlassSolidFull, label: "Search Chat", action : () => setsearch(true) },
-                { icon: icons.bookSolidFull, label: "Projects", action : () => setproject(true) },
-                { icon: icons.ellipsisSolidFull, label: "More" },
-              ]
+function Sidebar({ expand, setExpand, setprofile, setChat, setsearch, setproject }) {
+  const menuItems = [
+    { icon: icons.pencilSolidFull, label: "New Chat", action: () => setChat(true) },
+    { icon: icons.magnifyingGlassSolidFull, label: "Search Chat", action: () => setsearch(true) },
+    { icon: icons.bookSolidFull, label: "Projects", action: () => setproject(true) },
+    { icon: icons.ellipsisSolidFull, label: "More" },
+  ];
 
   return (
-    <div
-      className={`h-screen bg-white border-r flex flex-col justify-between transition-all duration-300
-      ${expand ? "w-64" : "w-20"} 
-      fixed md:relative z-50`}
+    <aside
+      className={`fixed z-40 h-screen border-r border-white/10 bg-slate-900/90 backdrop-blur-xl transition-all duration-300 md:relative ${
+        expand ? "w-72" : "w-22"
+      }`}
     >
+      <div className="flex h-full flex-col justify-between p-3">
+        <div>
+          <div className="mb-5 flex items-center justify-between px-2 py-2">
+            <div
+              className={`flex h-10 items-center justify-center rounded-xl bg-linear-to-br from-amber-400 to-orange-500 text-slate-950 shadow-lg shadow-amber-500/25 ${
+                expand ? "w-10" : "hidden"
+              }`}
+            >
+              <Image src={icons.firstOrderAltBrandsSolidFull} alt="logo" width={18} height={18} />
+            </div>
 
-      {/* Top */}
-      <div>
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className={` ${expand ? 'block' : 'hidden'} h-9 w-9 bg-amber-500 rounded-full flex items-center justify-center`}>
-            <Image src={icons.firstOrderAltBrandsSolidFull} alt="logo" width={18} height={18} />
+            <button
+              onClick={() => setExpand(!expand)}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-100 transition hover:bg-white/10"
+            >
+              <Image src={icons.barsSolidFull} alt="toggle" width={14} height={14} />
+            </button>
           </div>
 
-          <button
-            onClick={() => setExpand(!expand)}
-            className="h-9 w-9 bg-gray-100 rounded-full flex items-center justify-center"
-          >
-            <Image src={icons.barsSolidFull} alt="toggle" width={14} height={14} />
-          </button>
-        </div>
-
-        {/* Menu */}
-        <div className="px-4 mt-6 space-y-2">
-
-
-
-
-          <div className="px-4 mt-6">
+          <div className="space-y-2 px-2">
             {expand && (
-              <h2 className={"text-xs font-semibold text-gray-500 uppercase tracking-wide"}>
+              <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
                 Features
-              </h2>
+              </p>
             )}
 
-            <div className="mt-3 space-y-2 :">
-
-            
-
-
-
-              {manuItems.map((item, i) => (
-                <div key={i} onClick={item.action} className={`relative group flex items-center ${expand ? "gap-3 px-3 justify-start" : "justify-center"
-                  } py-2 rounded-lg hover:bg-gray-100 cursor-pointer`}
+            <div className="space-y-1.5">
+              {menuItems.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={item.action}
+                  className={`group relative flex w-full items-center rounded-xl border border-transparent px-3 py-2.5 text-left transition ${
+                    expand ? "justify-start gap-3" : "justify-center"
+                  } hover:border-white/10 hover:bg-white/5`}
                 >
-                  <Image
-                    src={item.icon}
-                    alt={item.label}
-                    width={16}
-                    height={16}
-                  />
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800 text-slate-200 ring-1 ring-white/5">
+                    <Image src={item.icon} alt={item.label} width={16} height={16} />
+                  </span>
 
-                  {expand && (
-                    <span className="text-sm text-gray-700">{item.label}</span>
-                  )}
+                  {expand && <span className="text-sm font-medium text-slate-200">{item.label}</span>}
 
                   {!expand && (
-                      <span className="absolute left-full ml-3 
-                           whitespace-nowrap
-                           bg-indigo-300 text-black text-xs 
-                           px-2 py-1 rounded
-                           opacity-0 group-hover:opacity-100
-                           transition duration-200
-                           pointer-events-none">
+                    <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded-lg border border-white/10 bg-slate-800 px-2 py-1 text-[11px] text-slate-200 opacity-0 shadow-lg transition group-hover:opacity-100">
                       {item.label}
-                      </span>
+                    </span>
                   )}
-                </div>
-              ))
-              }
-
-
+                </button>
+              ))}
             </div>
           </div>
 
-
-
-         <History expand={expand}/>
-
-
-
+          <History expand={expand} />
         </div>
 
-       
-
-      </div>
-
-      {/* Bottom */}
-      <div className="p-4 border-t flex items-center justify-between">
-        <span className={`text-black ${expand ? 'block' : 'hidden'}`}>Profile</span>
-        <div className="h-10 w-10 bg-amber-500 rounded-full flex items-center justify-center">
-          <Image onClick={() => setprofile(true)}  className="cursor-pointer" src={icons.circleUserSolidFull} alt="user" width={18} height={18} />
+        <div className="mt-4 border-t border-white/10 p-3">
+          <div className="flex items-center justify-between gap-3">
+            {expand && <span className="text-sm font-medium text-slate-200">Profile</span>}
+            <button
+              onClick={() => setprofile(true)}
+              className="ml-auto flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-br from-amber-400 to-orange-500 text-slate-950 shadow-lg shadow-amber-500/25 transition hover:scale-105"
+            >
+              <Image src={icons.circleUserSolidFull} alt="user" width={18} height={18} />
+            </button>
+          </div>
         </div>
       </div>
-
-    </div>
+    </aside>
   );
 }
 

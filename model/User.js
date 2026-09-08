@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import { type } from "os";
 
 const userSchema = new Schema(
   {
@@ -35,6 +36,18 @@ const userSchema = new Schema(
     providerId: {
       type: String,
       default: null,
+    },
+
+    isverified: {
+      type: boolean,
+      default: false,
+      required: true,
+    },
+
+    role: {
+      type: String,
+      required: true,
+      default: "user"
     },
 
 
