@@ -80,8 +80,9 @@ const submitHendler =async (e)=>{
 
           {/* Email */}
           <div>
-            <label className="text-sm text-gray-600">Email</label>
+            <label htmlFor="email" className="text-sm text-gray-600">Email</label>
             <input
+              id="email"
               type="email"
               name="email"
               value={sigin.email}
@@ -93,8 +94,9 @@ const submitHendler =async (e)=>{
 
           {/* Password */}
           <div>
-            <label className="text-sm text-gray-600">Password</label>
+            <label htmlFor="password" className="text-sm text-gray-600">Password</label>
             <input
+              id="password"
               value={sigin.password}
               onChange={handleChange}
               name="password"
@@ -129,18 +131,19 @@ const submitHendler =async (e)=>{
         </div>
 
         {/* Google Login */}
-        <button className="w-full border py-2 rounded-lg flex text-black items-center justify-center gap-2 hover:bg-gray-100 transition">
+        <button type="button" className="w-full border py-2 rounded-lg flex text-black items-center justify-center gap-2 hover:bg-gray-100 transition">
           <span>🔵</span>
           Continue with Google
         </button>
 
         {/* Footer */}
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Don’t have an account?
-          <span className="text-amber-500 cursor-pointer hover:underline">
-            <Link href="Signup">Sign Up</Link>
-          </span>
-        </p>
+        <div className="text-center text-sm text-gray-500 mt-6 flex justify-center gap-1">
+  Don’t have an account?
+  <Link href="Signup" className="text-amber-500 hover:underline">
+    Sign Up
+  </Link>
+</div>
+
 
       </div>
     </div>

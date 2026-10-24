@@ -12,15 +12,18 @@ const hendler = NextAuth({
         })
     ],
 
+    //    console.log("providers", providers);
+
+
     callbacks: {
         async signIn({ user, account }) {
 
             try {
                 await dbConnection()
 
-                const user = await User.findOne(user.email)
+                const existUser = await User.findOne({ email: user.email })
 
-                if (!user) {
+                if (!existUser) {
                     await User.create({
                         name: user.name,
                         email: user.email,
@@ -45,6 +48,8 @@ const hendler = NextAuth({
                         status: "200"
                     })
                 }
+
+                // return true
             } catch (error) {
                 console.error("Google sign-in error", error)
                 return NextResponse.json({

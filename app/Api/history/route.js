@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 import Chat from "../../../model/Chat";
 
-export async function GET(){
-    const allChats = await Chat.find()
-    
-    if(allChats){
+export async function GET() {
+    const allChats = await Chat.find().countDocuments()
+    console.log("allChats", allChats)
+
+
+    if (allChats) {
         return NextResponse.json(
             {
-                ok : true
+                ok: true
             },
             {
-                chats : allChats
+                chats: allChats
             }
         )
     }

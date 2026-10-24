@@ -76,8 +76,9 @@ const submitHendler =async (e)=>{
 
           {/* Email */}
           <div>
-            <label className="text-sm text-gray-600">New Password</label>
+            <label htmlFor="newPassword" className="text-sm text-gray-600">New Password</label>
             <input
+              id="newPassword"
               type="password"
              value={updatePassword.newPassword}
               onChange={handleChange}
@@ -89,8 +90,9 @@ const submitHendler =async (e)=>{
 
           {/* Password */}
           <div>
-            <label className="text-sm text-gray-600">Confirm Password</label>
+            <label htmlFor="confirmPassword" className="text-sm text-gray-600">Confirm Password</label>
             <input
+              id="confirmPassword"
               value={updatePassword.confirmPassword}
               onChange={handleChange}
               name="confirmPassword"

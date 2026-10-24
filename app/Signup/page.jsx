@@ -1,8 +1,8 @@
 "use client"
 import React, { useState } from 'react'
 import Link from "next/link";
+import { signIn } from 'next-auth/react';
 import z from 'zod';
-import { get } from 'http';
 
 
 const schema = z.object({
@@ -61,12 +61,12 @@ function SignupPage() {
       })
 
       // console.log("res", res);
-    const data = await res.json()
-    console.log("data", data);
+      const data = await res.json()
+      console.log("data", data);
     
-    if (data.ok) {
-      console.log("sucess full working backend");      
-    }
+      if (data.ok) {
+        console.log("sucess full working backend");      
+      }
 
     // console.log("data", data);
 
@@ -86,7 +86,7 @@ function SignupPage() {
 
  async function google_Auth() {
    
-    location.assign("/Auth/google_Auth")
+    signIn("google")
 
   }
 
@@ -116,8 +116,9 @@ function SignupPage() {
 
           {/* Name */}
           <div>
-            <label className="text-sm  text-gray-600">Full Name</label>
+            <label htmlFor="name" className="text-sm  text-gray-600">Full Name</label>
             <input
+              id="name"
               type="text"
               name="name"
                 value={Signup.name}
@@ -129,8 +130,9 @@ function SignupPage() {
 
           {/* Email */}
           <div>
-            <label className="text-sm text-gray-600">Email</label>
+            <label htmlFor="email" className="text-sm text-gray-600">Email</label>
             <input
+              id="email"
               type="email"
               name="email"
                 value={Signup.email}
@@ -142,8 +144,9 @@ function SignupPage() {
 
           {/* Password */}
           <div>
-            <label className="text-sm text-gray-600">Password</label>
+            <label htmlFor="password" className="text-sm text-gray-600">Password</label>
             <input
+              id="password"
               type="password"
               name="password"
                 value={Signup.password}
@@ -176,7 +179,7 @@ function SignupPage() {
         </div>
 
         {/* Social Login */}
-        <button onClick={google_Auth} className="w-full border py-2 rounded-lg text-black flex items-center justify-center gap-2 hover:bg-gray-100 transition">
+        <button type="button" onClick={google_Auth} className="w-full border py-2 rounded-lg text-black flex items-center justify-center gap-2 hover:bg-gray-100 transition">
           <span>🔵</span>
           Continue with Google
         </button>

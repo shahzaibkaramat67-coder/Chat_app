@@ -58,10 +58,12 @@ const submitHendler = async(e)=>{
 
           {/* Email */}
           <div>
-            <label className="text-sm text-gray-600">Email</label>
+            <label htmlFor="forgot-email" className="text-sm text-gray-600">Email</label>
             <input
-            value={email.email}
-             onChange={changeHendler}
+              id="forgot-email"
+              name="email"
+              value={email.email}
+              onChange={changeHendler}
               type="email"
               placeholder="you@example.com"
               className="w-full  text-black mt-1 px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500"
@@ -71,7 +73,8 @@ const submitHendler = async(e)=>{
           {/* Button */}
           <button
             type="submit"
-            className="mt-2 w-full py-2 rounded-lg text-white font-medium bg-amber-500 hover:bg-amber-600 transition"
+            disabled={loading}
+            className="mt-2 w-full py-2 rounded-lg text-white font-medium bg-amber-500 hover:bg-amber-600 transition disabled:opacity-70 disabled:cursor-not-allowed"
           >
             Send Reset Link
           </button>

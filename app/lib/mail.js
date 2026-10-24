@@ -1,25 +1,25 @@
 import nodemailer from "nodemailer";
-export const mail = async(mail, name, type)=>{
+export const mail = async (mail, name, type) => {
     console.log("here mail mail funtion start");
-    
-  try {
-      const transport = nodemailer.createTransport({
-             service : "gmail",
-          port : 465,
-          secure : true,
-          auth : {
-              user : process.env.USER_NAME ,
-              pass : process.env.PASS
-          }
-      })
-    console.log("here optional funtion check");
-    
-  
+
+    try {
+        const transport = nodemailer.createTransport({
+            service: "gmail",
+            port: 465,
+            secure: true,
+            auth: {
+                user: process.env.USER_NAME,
+                pass: process.env.PASS
+            }
+        })
+        console.log("here optional funtion check");
+
+
         const mailOptions = {
-      from: process.env.USER_NAME,
-      to: mail,
-      subject: "Welcome to OmniAI Tools 🚀",
-      html: `
+            from: process.env.USER_NAME,
+            to: mail,
+            subject: "Welcome to OmniAI Tools 🚀",
+            html: `
           <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
               <div style="max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 10px;">
                   
@@ -78,14 +78,19 @@ export const mail = async(mail, name, type)=>{
               </div>
           </div>
       `
-  }
-  const result =await transport.sendMail(mailOptions)
-  console.log("error from amil", result.messageId);
-  
-  } catch (error) {
-    console.error(error);
-    
-  }
+        }
+        const result = await transport.sendMail(mailOptions)
+        console.log("error from amil", result.messageId);
+
+    } catch (error) {
+        // console.error(error);
+        console.error("ERROR FROM MIAL :", error);
+        console.error("ERROR MESSAGE :", error?.message);
+        console.error("ERROR CODE :", error?.code);
+        console.error("ERROR RESPONSE :", error?.result);
+
+
+    }
 
 
 }

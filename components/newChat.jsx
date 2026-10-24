@@ -2,7 +2,39 @@ import React from "react";
 import Image from "next/image";
 import icons from "@/Assets/asset";
 
-function Chat({ setChat }) {
+
+function Chat() {
+
+
+  // const [inputChatName, setinputChatName] = useState("")
+
+
+
+    async function newChatcreate() {
+        const newChatId = crypto.randomUUID();
+        console.log("newChatId", newChatId)
+
+        const newChatApi = await fetch(`/Api/newChat/${newChatId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          }
+        });
+
+        if (!newChatApi.ok) {
+          throw new Error("Failed to create new chat");
+        }
+
+        const res = await newChatApi.json();
+        console.log("new chat is created now", res);
+    }
+
+
+// // mongodb+srv://shahzaibkaramat67_db_user:<db_password>@cluster0.xg06dls.mongodb.net/
+// // https://downloads.mongodb.com/compass/mongodb-compass-1.53.0-darwin-x64.dmg
+// xWvGhxDbC8DZiKu0
+// shahzaibkaramat67_db_user
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
 
@@ -17,7 +49,8 @@ function Chat({ setChat }) {
           </h1>
 
           <button
-            onClick={() => setChat(false)}
+            type="button"
+            onClick={() => Chat()}
             className="p-2 rounded-full hover:bg-white/10 transition"
           >
             <Image
@@ -31,7 +64,7 @@ function Chat({ setChat }) {
         </div>
 
         {/* CONTENT */}
-        <div className="p-4 space-y-3 max-h-72 overflow-auto">
+        {/* <div className="p-4 space-y-3 max-h-72 overflow-auto">
 
           <div className="bg-[#222222] rounded-2xl p-4 border border-gray-700">
 
@@ -45,14 +78,14 @@ function Chat({ setChat }) {
 
           </div>
 
-        </div>
+        </div> */}
 
         {/* FOOTER (optional future input area) */}
-        <div className="p-4 border-t border-gray-800">
-          <div className="bg-[#222222] border border-gray-700 rounded-2xl px-3 py-2 text-sm text-gray-400">
-            Chat info view (static)
-          </div>
-        </div>
+        {/* <div className="p-4 border-t border-gray-800">
+          <input className="bg-[#222222] border border-gray-700 rounded-2xl px-3 py-2 text-sm text-gray-400">
+            
+          </input>
+        </div> */}
 
       </div>
     </div>

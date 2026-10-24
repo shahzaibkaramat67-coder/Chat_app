@@ -14,6 +14,8 @@ import Chat from '../../../model/Chat';
 import { title } from 'process';
 import { NEXT_CACHE_ROOT_PARAM_TAG_ID } from 'next/dist/lib/constants';
 import getToken from '../../lib/verify';
+import { model } from '../../lib/modelOption';
+
 
 
 export async function POST(req) {
@@ -41,8 +43,9 @@ export async function POST(req) {
 
 
 
-    const { text, userMessageID, fullChatId } = body;
+    const { text, userMessageID, fullChatId, selectOPtion } = body;
     console.log("this is also from chat route", text);
+    console.log("selectOPtion :", selectOPtion);
 
     const fullChat = await Chat.findOne({ fullChatId })
 
@@ -54,9 +57,12 @@ export async function POST(req) {
       const createChat = await Chat.create({
         userId: user,
         fullChatId: fullChatId,
-        title: text.slice(0, 30)
+        title: "new Chat"
 
       })
+
+      console.log("createChat", createChat);
+
 
       const createMessageForChat = await Message.create({
         fullChatId: fullChatId,
@@ -78,31 +84,44 @@ export async function POST(req) {
 
     // console.log("this is from chat route saveUserData", saveUserData);
 
+    const choseModel = model[selectOPtion]
 
-
-    const ApiReply = await AiFunction(text)
-    console.log("this is from chat route cmdApiReply", ApiReply);
-
-
-    if (!ApiReply) {
-      return NextResponse.json({ error: "AI failed" }, { status: 500 });
+    if (!choseModel) {
+      return NextResponse.json({ error: "Select your model" }, { status: 404 })
     }
 
-
-    // const saveAIData = await Message.create({
-    //   userId: user._id,
-    //   chatId: fullChatId,
-    //   messageID: aiMessageID,
-    //   role: "assistant",
-    //   messageID: ApiReply
-
-    // })
+    console.log("model :", choseModel);
 
 
+    const result = await AiFunction(text, choseModel.model)
+    console.log("this is from chat route result", result);
 
-    return new NextResponse(ApiReply.body, {
-      headers: { "Content-Type": "text/plain" }
+    const responseStream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of result.stream) {
+            controller.enqueue(
+              new TextEncoder().encode(chunk.text())
+            )
+          }
+          controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      }
     })
+
+
+    return new Response(responseStream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+      },
+    })
+
+
+
+
 
     // return NextResponse.json({ 
     //   ApiReply.body

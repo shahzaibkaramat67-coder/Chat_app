@@ -12,7 +12,7 @@ function Profile({ setprofile }) {
       <div className="w-full max-w-md bg-[#171717] border border-gray-800 rounded-3xl overflow-hidden shadow-2xl">
 
         {/* Top Section */}
-        <div className="relative h-28 bg-gradient-to-r from-amber-400 via-orange-500 to-yellow-500">
+        <div className="relative h-28 bg-linear-to-r from-amber-400 via-orange-500 to-yellow-500">
 
           {/* Close Button */}
           <button

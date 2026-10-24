@@ -1,12 +1,16 @@
 "use client";
 
+import { checkCustomRoutes } from "next/dist/lib/load-custom-routes";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
-function UserInputSection({ messages = [], setmessages, loading, setloading }) {
+function UserInputSection({ setmessages, loading, setloading }) {
   const [input, setInput] = useState("");
+  const [selectOPtion, setSelectOPtion] = useState("");
   const route = useRouter();
 
+
+  console.log("selectOPtion :", selectOPtion)
   const sendHendeler = async () => {
     if (!input.trim()) return null;
 
@@ -14,6 +18,7 @@ function UserInputSection({ messages = [], setmessages, loading, setloading }) {
     const userMessageID = crypto.randomUUID();
     const aiMessageID = crypto.randomUUID();
     const fullChatId = crypto.randomUUID();
+ 
 
     setmessages((prev) => [
       ...prev,
@@ -33,7 +38,7 @@ function UserInputSection({ messages = [], setmessages, loading, setloading }) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ text: userInput, userMessageID, fullChatId }),
+      body: JSON.stringify({ text: userInput, userMessageID, fullChatId, selectOPtion }),
     });
 
     if (res.status === 401) {
@@ -57,28 +62,15 @@ function UserInputSection({ messages = [], setmessages, loading, setloading }) {
       const { value, done } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split("\n").filter(Boolean);
-
-      for (let line of lines) {
-        try {
-          const json = JSON.parse(line);
-
-          if (json.response) {
-            fullText += json.response;
-
-            setmessages((prev) =>
+      const chunk = decoder.decode(value, {stream : true});
+      fullText +=chunk
+              setmessages((prev) =>
               prev.map((msg) =>
                 msg.id === aiMessageID
                   ? { ...msg, fullChatId, content: fullText, loading: false }
                   : msg
               )
             );
-          }
-        } catch (error) {
-          console.error(error);
-        }
-      }
     }
 
     setloading(false);
@@ -135,7 +127,12 @@ function UserInputSection({ messages = [], setmessages, loading, setloading }) {
           </div>
 
           <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-slate-400">
-            {loading ? <span>Thinking…</span> : <span>Ready</span>}
+            {/* {loading ? <span>Thinking…</span> : <span>Ready</span>} */}
+           <select value={selectOPtion} onChange={(e)=>setSelectOPtion(e.target.value)}  id="model">
+            <option value="default">Choose model</option>
+            <option value="gemini-2.5-flash-lite">gemini 2.5 flash-lite (free)</option>
+            <option value="gemini-2.5-flash">gemini-2.5-flash (free)</option>
+           </select>
           </div>
         </div>
       </div>

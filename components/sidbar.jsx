@@ -4,9 +4,9 @@ import Image from "next/image";
 import icons from "../Assets/asset.js";
 import History from "@/components/history.jsx";
 
-function Sidebar({ expand, setExpand, setprofile, setChat, setsearch, setproject }) {
+function Sidebar({ expand, setExpand, setprofile, setsearch, setproject }) {
   const menuItems = [
-    { icon: icons.pencilSolidFull, label: "New Chat", action: () => setChat(true) },
+    { icon: icons.pencilSolidFull, label: "New Chat"},
     { icon: icons.magnifyingGlassSolidFull, label: "Search Chat", action: () => setsearch(true) },
     { icon: icons.bookSolidFull, label: "Projects", action: () => setproject(true) },
     { icon: icons.ellipsisSolidFull, label: "More" },

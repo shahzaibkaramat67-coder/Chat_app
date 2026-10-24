@@ -18,7 +18,7 @@ export default function Home() {
   const [popup, setpopup] = useState(false);
   const [profile, setprofile] = useState(false);
   const [threedot, setthreedot] = useState(false);
-  const [chat, setChat] = useState(false);
+  // const [chat, setChat] = useState(false);
   const [search, setsearch] = useState(false);
   const [project, setproject] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -44,7 +44,6 @@ export default function Home() {
         expand={expand}
         setExpand={setExpand}
         setprofile={setprofile}
-        setChat={setChat}
         setsearch={setsearch}
         setproject={setproject}
       />
@@ -84,7 +83,7 @@ export default function Home() {
         </header>
 
         {threedot && <Threedot />}
-        {chat && <Chat setChat={setChat} />}
+        {/* {chat && <Chat setChat={setChat} />} */}
         {search && <Search setSearch={setsearch} />}
         {project && <Project setproject={setproject} />}
         {popup && <Popup popup={popup} setpopup={setpopup} />}
@@ -99,7 +98,6 @@ export default function Home() {
         <div className="border-t border-white/10 bg-slate-950/80 backdrop-blur-xl">
           <UserInputSection
             setmessages={setMessages}
-            messages={messages}
             loading={loading}
             setloading={setloading}
           />
