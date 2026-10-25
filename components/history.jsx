@@ -1,26 +1,30 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import ChatMessages from "../app/chat/message/page"
 
-function History({ expand }) {
+function History({ expand, onSelectChat }) {
   const [history, setHistory] = useState([]);
+  const [chatId, setChatId] = useState("");
+  // const [chatIdMessage, setChatIdMessae] = useState([])
+
+
+  console.log("chatId :", chatId);
+  
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await fetch("/Api/history", {
-          method: "GET",
-          headers: {
-            "Content-type": "application/json",
-          },
-        });
+        const res = await fetch("/Api/history");
 
         if (!res.ok) {
           return;
         }
 
-        const data = await res.json();
-        setHistory(Array.isArray(data?.messages) ? data.messages : []);
+        const result = await res.json();
+        setHistory(result.History)
+        
+        // setHistory(Array.isArray(data?.messages) ? data.messages : []);
       } catch (error) {
         console.error("History fetch error:", error);
       }
@@ -28,6 +32,22 @@ function History({ expand }) {
 
     fetchHistory();
   }, []);
+
+
+
+  const chatIdShow = async (Chat) =>{
+    const res = await fetch(`/api/history/HistoryChatShow/${Chat}`)
+    if (res.ok) {
+      const data =await res.json()
+      console.log("data", data.History);
+      // setChatIdMessae(data.History)
+      onSelectChat(data.History)
+
+
+      
+    }
+  }
+  
 
   return (
     <div className={`${expand ? "block" : "hidden"} px-4 mt-8`}>
@@ -39,8 +59,9 @@ function History({ expand }) {
         {history.length > 0 ? (
           history.map((item, index) => (
             <div
-              key={item._id || index}
-              className="px-3 py-2 rounded-lg hover:bg-gray-100 cursor-pointer text-sm text-gray-700"
+              key={item.fullChatId || index}
+              onClick={()=> chatIdShow(item.fullChatId)}
+              className="px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black cursor-pointer text-sm text-white-700"
             >
               {item.title || item.content || `History ${index + 1}`}
             </div>

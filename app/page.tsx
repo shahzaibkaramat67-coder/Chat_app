@@ -46,6 +46,7 @@ export default function Home() {
         setprofile={setprofile}
         setsearch={setsearch}
         setproject={setproject}
+        onSelectChat={setMessages}
       />
 
       <div className="relative flex flex-1 min-w-0 flex-col">
