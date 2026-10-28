@@ -16,9 +16,10 @@ export async function POST(req) {
 
     const { aiMessageID, role, content, fullChatId } = body
 
+
     const fullChatfound = await Chat.findOne({ fullChatId })
 
-    console.log("fullChatfound :", fullChatfound);
+    console.log("this is fullChatfound :", fullChatfound);
 
 
     if (!fullChatfound) {
@@ -35,19 +36,23 @@ export async function POST(req) {
     }
 
 
-    await Message.create({
-      fullChatId: fullChatfound._id,
+    const aicreaed = await Message.create({
+      chatId: fullChatfound._id,
       messageID: aiMessageID,
       role,
       content
     })
 
+    if (!aicreaed) {
 
-    return NextResponse.json({ ok: true }, { status: 200 })
+      return NextResponse.json({ ok: true, message: "something went wrong" }, { status: 200 })
+    }
+
+
 
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "not data store in db from Ai" }, { status: 500 })
+    return NextResponse.json({ message: "not data store in db from Ai" }, { status: 500 })
 
   }
 

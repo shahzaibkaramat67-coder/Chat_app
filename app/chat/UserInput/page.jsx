@@ -8,8 +8,10 @@ function UserInputSection({ setmessages, loading, setloading, onHistoryrefresh }
   const [input, setInput] = useState("");
   const [fullChatId, setFullChatId] = useState(null)
   const [selectOPtion, setSelectOPtion] = useState("");
+  const [error, seterror] = useState("")
   const route = useRouter();
 
+ 
 
   console.log("selectOPtion :", selectOPtion)
   const sendHendeler = async () => {
@@ -65,8 +67,20 @@ function UserInputSection({ setmessages, loading, setloading, onHistoryrefresh }
 
       return route.push("/login");
     }
+    if(!res.ok){
+    const data = await res.json()
+    setloading(false);
+    seterror(data.message)
+    return
 
-    const reader = res.body.getReader();
+    }
+
+    if(!res.body){
+      setloading(false);
+      seterror("No Data Recieve From AI")
+      return
+    }else{
+       const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let fullText = "";
 
@@ -84,8 +98,11 @@ function UserInputSection({ setmessages, loading, setloading, onHistoryrefresh }
               )
             );
     }
+    }
 
-    setloading(false);
+
+   
+
 
     const saveAI = await fetch("/Api/saveAi", {
       method: "post",
@@ -99,13 +116,20 @@ function UserInputSection({ setmessages, loading, setloading, onHistoryrefresh }
         fullChatId : ChatId
       }),
     });
-    if(saveAI.ok){
-       onHistoryrefresh?.();
+    if(!saveAI.ok){
+      const data = await saveAI.json()
+      seterror(data.message)
+    }else{
+      onHistoryrefresh?.();
     }
+    
   };
 
   return (
     <div className="flex flex-col items-center justify-center px-4 py-4 md:px-6 md:py-5">
+      {error && (
+         <p className="text-red-500">{error}</p>
+      )}
       <div className="w-full max-w-4xl rounded-[28px] border border-white/10 bg-slate-900/80 p-3 shadow-2xl shadow-slate-950/40 backdrop-blur-xl md:p-4">
         <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/60 px-3 py-3 transition focus-within:border-amber-400/60 focus-within:ring-2 focus-within:ring-amber-400/20 md:px-4">
           <input
@@ -143,7 +167,7 @@ function UserInputSection({ setmessages, loading, setloading, onHistoryrefresh }
 
           <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-slate-400">
             {/* {loading ? <span>Thinking…</span> : <span>Ready</span>} */}
-           <select value={selectOPtion} onChange={(e)=>setSelectOPtion(e.target.value)}  id="model">
+           <select value={selectOPtion} required onChange={(e)=>setSelectOPtion(e.target.value)}  id="model">
             <option value="default">Choose model</option>
             <option value="gemini-2.5-flash-lite">gemini 2.5 flash-lite (free)</option>
             <option value="gemini-2.5-flash">gemini-2.5-flash (free)</option>

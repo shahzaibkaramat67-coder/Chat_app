@@ -29,7 +29,7 @@ function History({ expand, onSelectChat, refreshTrigerHistory }) {
       } catch (error) {
         console.error("History fetch error:", error);
       }
-    });
+    }, []);
 
 
   

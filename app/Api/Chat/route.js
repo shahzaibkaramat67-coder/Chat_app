@@ -47,6 +47,18 @@ export async function POST(req) {
     console.log("this is also from chat route", text);
     console.log("selectOPtion :", selectOPtion);
     console.log("fullChatId :", fullChatId);
+
+    if (!selectOPtion) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: "chose your model to answer",
+        },
+        {
+          status: 400
+        }
+      )
+    }
     const chatName = text.trim().slice(0, 30) || "New Chat"
     // const fullChat = await Chat.findOne({ fullChatId: fullChatId })
 
@@ -93,39 +105,63 @@ export async function POST(req) {
 
     if (!choseModel) {
       return NextResponse.json(
-        { error: "Select your model" },
+        { message: "Select your model" },
         { status: 404 }
       );
     }
 
     console.log("model :", choseModel);
 
+    try {
 
-    const result = await AiFunction(text, choseModel.model)
-    console.log("this is from chat route result", result);
-
-    const responseStream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of result.stream) {
-            controller.enqueue(
-              new TextEncoder().encode(chunk.text())
-            )
+      const result = await AiFunction(text, choseModel.model)
+      console.log("this is from chat route result", result);
+      if (!result || !result.stream) {
+        return NextResponse.json(
+          {
+            ok: false,
+            message: "AI did not return a valid response stream",
+          },
+          {
+            status: 500
           }
-          controller.close();
-        } catch (error) {
-          controller.error(error);
-        }
+        )
       }
-    })
+
+      const responseStream = new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const chunk of result.stream) {
+              controller.enqueue(
+                new TextEncoder().encode(chunk.text())
+              )
+            }
+            controller.close();
+          } catch (error) {
+            controller.error(error);
+          }
+        }
+      })
+
+      if (responseStream) {
+        return new Response(responseStream, {
+          headers: {
+            "Content-Type": "text/plain; charset=utf-8",
+            "Cache-Control": "no-cache, no-transform",
+          },
+        })
+      }
+    } catch (error) {
+      console.error("Ai Streaming Error", error)
+
+    }
 
 
-    return new Response(responseStream, {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-cache, no-transform",
-      },
-    })
+
+
+    // await Message.create({
+
+    // })
 
 
 
@@ -138,7 +174,7 @@ export async function POST(req) {
 
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "server error" }, { status: 500 });
+    return NextResponse.json({ message: "server error" }, { status: 500 });
   }
 
 }
@@ -160,7 +196,7 @@ export async function GET() {
 
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "not chat found" }, { status: 401 })
+    return NextResponse.json({ ok: false, message: "not chat found" }, { status: 401 })
 
   }
 }

@@ -28,7 +28,7 @@ export async function GET(req, { params }) {
         console.log("chatIdForHistory hvhjvuvhvhvuivhvih:", chatIdForHistory.fullChatId);
 
         const message = await Message.find({ chatId: chatIdForHistory._id }).sort({ createdAt: 1 })
-        console.log("message:", message);
+        console.log("All message from Chat:", message);
         return NextResponse.json(
             {
                 okay: true,
@@ -49,7 +49,4 @@ export async function GET(req, { params }) {
             }
         )
     }
-
-
-
 }
