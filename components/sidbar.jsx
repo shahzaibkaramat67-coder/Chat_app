@@ -4,7 +4,7 @@ import Image from "next/image";
 import icons from "../Assets/asset.js";
 import History from "@/components/history.jsx";
 
-function Sidebar({ expand, setExpand, setprofile, onSelectChat, setsearch, setproject }) {
+function Sidebar({ expand, setExpand, setprofile, onSelectChat,refreshTrigerHistory, setsearch, setproject }) {
   const menuItems = [
     { icon: icons.pencilSolidFull, label: "New Chat"},
     { icon: icons.magnifyingGlassSolidFull, label: "Search Chat", action: () => setsearch(true) },
@@ -69,7 +69,7 @@ function Sidebar({ expand, setExpand, setprofile, onSelectChat, setsearch, setpr
             </div>
           </div>
 
-          <History expand={expand} onSelectChat={onSelectChat} />
+          <History expand={expand} onSelectChat={onSelectChat} refreshTrigerHistory={refreshTrigerHistory} />
         </div>
 
         <div className="mt-4 border-t border-white/10 p-3">

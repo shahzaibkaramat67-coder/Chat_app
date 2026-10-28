@@ -15,7 +15,6 @@ export async function POST(req) {
     console.log("body", body);
 
     const { aiMessageID, role, content, fullChatId } = body
-    await dbConnection();
 
     const fullChatfound = await Chat.findOne({ fullChatId })
 
@@ -23,21 +22,28 @@ export async function POST(req) {
 
 
     if (!fullChatfound) {
-      return null
+      return NextResponse.json(
+        {
+          ok: false,
+          message: "No Chat ID Found",
+        },
+        {
+          status: 401
+        }
+      )
 
     }
 
 
     await Message.create({
-      fullChatId: fullChatId,
+      fullChatId: fullChatfound._id,
       messageID: aiMessageID,
-      fullChatId: fullChatId,
       role,
       content
     })
 
 
-    return NextResponse.json({ success: "true" }, { status: 200 })
+    return NextResponse.json({ ok: true }, { status: 200 })
 
   } catch (error) {
     console.error(error);

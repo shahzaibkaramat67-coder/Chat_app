@@ -14,6 +14,7 @@ import UserInputSection from "@/app/chat/UserInput/page";
 import ChatMessages from "@/app/chat/message/page";
 
 export default function Home() {
+  const [storageFullChatId, setStorageFullChatId] = useState<string | null>(null);
   const [expand, setExpand] = useState(true);
   const [popup, setpopup] = useState(false);
   const [profile, setprofile] = useState(false);
@@ -23,20 +24,45 @@ export default function Home() {
   const [project, setproject] = useState(false);
   const [messages, setMessages] = useState([]);
   const [loading, setloading] = useState(false);
+  const [refreshTrigerHistory, setRefreshTrigerHistory] = useState(0);
 
   useEffect(() => {
-    const getMessage = async () => {
-      try {
-        const res = await fetch("/Api/Chat");
-        const data = await res.json();
-        setMessages(data.messages || []);
-      } catch (error) {
-        console.error("Fetch error:", error);
-      }
-    };
 
-    getMessage();
+    let chatId = sessionStorage.getItem("fullChatId");
+
+    if (!chatId) {
+      chatId = crypto.randomUUID();
+      sessionStorage.setItem("fullChatId", chatId);
+    }
+
+    setStorageFullChatId(chatId);
+
   }, []);
+
+
+
+
+  const handleHistoryRefresh = () => {
+    setRefreshTrigerHistory((prev) => prev + 1);
+  };
+
+
+
+  //   try {
+  //     const res = await fetch("/Api/Chat");
+  //     const data = await res.json();
+  //     if (data) {
+  //       setMessages(data.messages || []);
+  //     } else {
+
+  //     }
+  //   } catch (error) {
+  //     console.error("Fetch error:", error);
+  //   }
+  // };
+
+  // getMessage();
+
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-50">
@@ -47,6 +73,7 @@ export default function Home() {
         setsearch={setsearch}
         setproject={setproject}
         onSelectChat={setMessages}
+        refreshTrigerHistory={refreshTrigerHistory}
       />
 
       <div className="relative flex flex-1 min-w-0 flex-col">
@@ -101,6 +128,7 @@ export default function Home() {
             setmessages={setMessages}
             loading={loading}
             setloading={setloading}
+            onHistoryrefresh={handleHistoryRefresh}
           />
         </div>
       </div>

@@ -4,8 +4,9 @@ import { checkCustomRoutes } from "next/dist/lib/load-custom-routes";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
-function UserInputSection({ setmessages, loading, setloading }) {
+function UserInputSection({ setmessages, loading, setloading, onHistoryrefresh }) {
   const [input, setInput] = useState("");
+  const [fullChatId, setFullChatId] = useState(null)
   const [selectOPtion, setSelectOPtion] = useState("");
   const route = useRouter();
 
@@ -17,12 +18,23 @@ function UserInputSection({ setmessages, loading, setloading }) {
     const userInput = input.trim();
     const userMessageID = crypto.randomUUID();
     const aiMessageID = crypto.randomUUID();
-    const fullChatId = crypto.randomUUID();
+    // const fullChatId = ;
+
+
+  // Reuse the current chat ID, or create one for the first message.
+  const ChatId = fullChatId || crypto.randomUUID();
+
+  if (!fullChatId) {
+    setFullChatId(ChatId);
+  }
  
+
+  console.log("ChatId :", ChatId);
+  
 
     setmessages((prev) => [
       ...prev,
-      { id: userMessageID, fullChatId, role: "user", content: userInput },
+      { id: userMessageID, fullChatId : ChatId, role: "user", content: userInput },
     ]);
 
     setInput("");
@@ -30,7 +42,7 @@ function UserInputSection({ setmessages, loading, setloading }) {
 
     setmessages((prev) => [
       ...prev,
-      { id: aiMessageID, fullChatId, role: "assistant", content: "", loading: true },
+      { id: aiMessageID, fullChatId : ChatId, role: "assistant", content: "", loading: true },
     ]);
 
     const res = await fetch("/Api/Chat", {
@@ -38,7 +50,7 @@ function UserInputSection({ setmessages, loading, setloading }) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ text: userInput, userMessageID, fullChatId, selectOPtion }),
+      body: JSON.stringify({ text: userInput, userMessageID, fullChatId : ChatId, selectOPtion }),
     });
 
     if (res.status === 401) {
@@ -67,7 +79,7 @@ function UserInputSection({ setmessages, loading, setloading }) {
               setmessages((prev) =>
               prev.map((msg) =>
                 msg.id === aiMessageID
-                  ? { ...msg, fullChatId, content: fullText, loading: false }
+                  ? { ...msg, fullChatId :ChatId, content: fullText, loading: false }
                   : msg
               )
             );
@@ -75,7 +87,7 @@ function UserInputSection({ setmessages, loading, setloading }) {
 
     setloading(false);
 
-    await fetch("/Api/saveAi", {
+    const saveAI = await fetch("/Api/saveAi", {
       method: "post",
       headers: {
         "Content-Type": "application/json",
@@ -84,9 +96,12 @@ function UserInputSection({ setmessages, loading, setloading }) {
         aiMessageID,
         role: "assistant",
         content: fullText,
-        fullChatId,
+        fullChatId : ChatId
       }),
     });
+    if(saveAI.ok){
+       onHistoryrefresh?.();
+    }
   };
 
   return (

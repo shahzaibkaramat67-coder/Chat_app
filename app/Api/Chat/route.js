@@ -46,18 +46,19 @@ export async function POST(req) {
     const { text, userMessageID, fullChatId, selectOPtion } = body;
     console.log("this is also from chat route", text);
     console.log("selectOPtion :", selectOPtion);
+    console.log("fullChatId :", fullChatId);
+    const chatName = text.trim().slice(0, 30) || "New Chat"
+    // const fullChat = await Chat.findOne({ fullChatId: fullChatId })
 
-    const fullChat = await Chat.findOne({ fullChatId })
-
-    console.log("chatId", fullChat);
-
+    const fullChat = await Chat.findOne({ fullChatId: fullChatId, userId: user });
+    console.log("fullChat :", fullChat);
 
     if (!fullChat) {
 
       const createChat = await Chat.create({
         userId: user,
         fullChatId: fullChatId,
-        title: "new Chat"
+        title: chatName
 
       })
 
@@ -65,20 +66,24 @@ export async function POST(req) {
 
 
       const createMessageForChat = await Message.create({
-        fullChatId: fullChatId,
+        chatId: fullChat.id,
         messageID: userMessageID,
         role: "user",
         content: text
       })
+
+      console.log("createMessageForChat :", createMessageForChat);
+
 
     } else {
 
       const saveUserData = await Message.create({
-        fullChatId: fullChatId,
+        chatId: fullChat.id,
         messageID: userMessageID,
         role: "user",
         content: text
       })
+      console.log("saveUserData :", saveUserData);
 
     }
 
@@ -87,7 +92,10 @@ export async function POST(req) {
     const choseModel = model[selectOPtion]
 
     if (!choseModel) {
-      return NextResponse.json({ error: "Select your model" }, { status: 404 })
+      return NextResponse.json(
+        { error: "Select your model" },
+        { status: 404 }
+      );
     }
 
     console.log("model :", choseModel);

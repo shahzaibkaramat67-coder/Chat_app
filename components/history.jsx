@@ -1,24 +1,25 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect,useCallback, useState } from "react";
 import ChatMessages from "../app/chat/message/page"
 
-function History({ expand, onSelectChat }) {
+function History({ expand, onSelectChat, refreshTrigerHistory }) {
   const [history, setHistory] = useState([]);
   const [chatId, setChatId] = useState("");
   // const [chatIdMessage, setChatIdMessae] = useState([])
 
 
-  console.log("chatId :", chatId);
-  
+  console.log("history :", history);
 
-  useEffect(() => {
-    const fetchHistory = async () => {
+   const fetchHistory =  useCallback(async() => {
       try {
-        const res = await fetch("/Api/history");
+        const res = await fetch("/Api/history",{
+         cache: "no-store",
+        })
 
         if (!res.ok) {
-          return;
+          console.log("Failed to fetch chat history");
+           return;
         }
 
         const result = await res.json();
@@ -28,22 +29,30 @@ function History({ expand, onSelectChat }) {
       } catch (error) {
         console.error("History fetch error:", error);
       }
-    };
+    });
 
+
+  
+
+  useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [fetchHistory, refreshTrigerHistory]);
 
 
 
-  const chatIdShow = async (Chat) =>{
-    const res = await fetch(`/api/history/HistoryChatShow/${Chat}`)
+  const chatIdShow = async (chat) =>{
+    const res = await fetch(`/Api/history/HistoryChatShow/${chat}`)
     if (res.ok) {
       const data =await res.json()
-      console.log("data", data.History);
-      // setChatIdMessae(data.History)
-      onSelectChat(data.History)
+      if(data){
+        console.log("now data access data.messageList :", data.messageList);
+        
+        onSelectChat(data.messageList)
+      }else{
 
-
+        console.log("this is error data.messages :", data.messages);
+      }
+     
       
     }
   }
