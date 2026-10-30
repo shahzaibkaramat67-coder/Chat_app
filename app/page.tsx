@@ -14,7 +14,10 @@ import UserInputSection from "@/app/chat/UserInput/page";
 import ChatMessages from "@/app/chat/message/page";
 
 export default function Home() {
-  const [storageFullChatId, setStorageFullChatId] = useState<string | null>(null);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+
+  const [draftChatId, setDraftChatId] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [expand, setExpand] = useState(true);
   const [popup, setpopup] = useState(false);
   const [profile, setprofile] = useState(false);
@@ -25,21 +28,62 @@ export default function Home() {
   const [messages, setMessages] = useState([]);
   const [loading, setloading] = useState(false);
   const [refreshTrigerHistory, setRefreshTrigerHistory] = useState(0);
+  // const [error, setError] = useState("")
 
+  // 1. Restore conversation after page refresh
   useEffect(() => {
+    async function restoreChat() {
+      try {
+        const saveActiveChatId = sessionStorage.getItem("activeChatId")
+        const saveDaftChatId = sessionStorage.getItem("draftChatId")
 
-    let chatId = sessionStorage.getItem("fullChatId");
+        if (saveActiveChatId) {
+          setActiveChatId(saveActiveChatId)
+          setDraftChatId(null)
 
-    if (!chatId) {
-      chatId = crypto.randomUUID();
-      sessionStorage.setItem("fullChatId", chatId);
+          const res = await fetch(`/Api/history/HistoryChatShow/${saveActiveChatId}`)
+          if (res.ok) {
+            const data = await res.json()
+            setMessages(data.messageList || [])
+          } else {
+            console.error("Failed to response :", res.status)
+            setMessages([])
+          }
+        } else if (saveDaftChatId) {
+          setDraftChatId(saveDaftChatId)
+          setActiveChatId(null)
+          setMessages([])
+        } else {
+          const newDaftChatUUIDId = crypto.randomUUID()
+          setDraftChatId(newDaftChatUUIDId)
+          setActiveChatId(null)
+          setMessages([])
+
+          sessionStorage.setItem("draftChatId", newDaftChatUUIDId)
+        }
+      } catch (error) {
+        console.error("chat restoration error :", error)
+      } finally {
+        setIsInitialized(true)
+
+      }
+
+
     }
-
-    setStorageFullChatId(chatId);
-
+    restoreChat()
   }, []);
 
+  // 2. Create a new empty conversation
 
+  function hendelNewChat() {
+    const newChatId = crypto.randomUUID()
+    setActiveChatId(null)
+    setDraftChatId(newChatId)
+    setMessages([])
+
+    sessionStorage.removeItem("activeChatId")
+    sessionStorage.setItem("draftChatId", newChatId)
+  }
 
 
   const handleHistoryRefresh = () => {
@@ -47,21 +91,49 @@ export default function Home() {
   };
 
 
+  function handleChatCreated(newMongoChatId: string) {
+    setActiveChatId(newMongoChatId);
+    setDraftChatId(null);
 
-  //   try {
-  //     const res = await fetch("/Api/Chat");
-  //     const data = await res.json();
-  //     if (data) {
-  //       setMessages(data.messages || []);
-  //     } else {
+    sessionStorage.setItem("activeChatId", newMongoChatId);
+    sessionStorage.removeItem("draftChatId");
+  }
 
-  //     }
-  //   } catch (error) {
-  //     console.error("Fetch error:", error);
-  //   }
-  // };
 
-  // getMessage();
+
+
+
+
+  const hendelNewChatCreate = async () => {
+    let ChatId = activeChatId;
+
+    if (!ChatId) {
+      const newChatApi = await fetch(`/Api/newChat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ newChatId: draftChatId })
+      });
+      console.log("newChatApi :", newChatApi);
+      const data = await newChatApi.json();
+      if (!newChatApi.ok) {
+        console.log("API response:", data.message);
+        return
+      }
+      // newChat = data.newChatId
+      // console.log("API response newChat:", newChat);
+      if (!newChatApi.ok) {
+        console.error("New chat creation failed:", data.message);
+        return;
+      }
+
+      ChatId = data.newChatId
+
+    }
+
+
+  }
 
 
   return (
@@ -74,6 +146,9 @@ export default function Home() {
         setproject={setproject}
         onSelectChat={setMessages}
         refreshTrigerHistory={refreshTrigerHistory}
+        onNewChat={hendelNewChat}
+        activeChatId={activeChatId}
+        setActiveChatId={setActiveChatId}
       />
 
       <div className="relative flex flex-1 min-w-0 flex-col">
@@ -129,6 +204,11 @@ export default function Home() {
             loading={loading}
             setloading={setloading}
             onHistoryrefresh={handleHistoryRefresh}
+            activeChatId={activeChatId}
+            setActiveChatId={setActiveChatId}
+            draftChatId={draftChatId}
+            onChatCreated={handleChatCreated}
+
           />
         </div>
       </div>

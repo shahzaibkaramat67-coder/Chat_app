@@ -23,6 +23,7 @@ function SignupPage() {
 
 
   const [loading, setloading] = useState(false)
+  const [showMessage, setShowMessage] = useState("")
   const [Signup, setSignup] = useState({
     name: "",
     email: "",
@@ -32,7 +33,7 @@ function SignupPage() {
   //  const name = Signup.name
   //   const email =  Signup.email
   //   const password =  Signup.password
-
+   showMessage = ""
   const handleChange = (e) => {
     setSignup({ ...Signup, [e.target.name]: e.target.value })
   }
@@ -65,6 +66,7 @@ function SignupPage() {
       console.log("data", data);
     
       if (data.ok) {
+        setShowMessage(data.message)
         console.log("sucess full working backend");      
       }
 
@@ -98,6 +100,9 @@ function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+     {showMessage && (
+         <h1 className="text-red-500">{showMessage}</h1>
+      )}
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
 
         {/* Heading */}

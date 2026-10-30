@@ -71,10 +71,15 @@ export async function POST(req) {
 
   try {
     await mail(body.email, body.name, "signup")
-    return NextResponse.json({
-      ok: true,
-      message: " email sent to Your Mail"
-    })
+    return NextResponse.json(
+      {
+        ok: true,
+        message: " Email sent to Your Mail"
+      },
+      {
+        status: 200
+      }
+    )
 
   } catch (error) {
     console.error(error);

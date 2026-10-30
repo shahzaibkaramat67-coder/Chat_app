@@ -4,9 +4,9 @@ import Image from "next/image";
 import icons from "../Assets/asset.js";
 import History from "@/components/history.jsx";
 
-function Sidebar({ expand, setExpand, setprofile, onSelectChat,refreshTrigerHistory, setsearch, setproject }) {
+function Sidebar({ activeChatId, setActiveChatId, expand, setExpand, setprofile, onNewChat, refreshTrigerHistory, onSelectChat, setsearch, setproject }) {
   const menuItems = [
-    { icon: icons.pencilSolidFull, label: "New Chat"},
+    { icon: icons.pencilSolidFull, label: "New Chat", action: onNewChat },
     { icon: icons.magnifyingGlassSolidFull, label: "Search Chat", action: () => setsearch(true) },
     { icon: icons.bookSolidFull, label: "Projects", action: () => setproject(true) },
     { icon: icons.ellipsisSolidFull, label: "More" },
@@ -14,17 +14,15 @@ function Sidebar({ expand, setExpand, setprofile, onSelectChat,refreshTrigerHist
 
   return (
     <aside
-      className={`fixed z-40 h-screen border-r border-white/10 bg-slate-900/90 backdrop-blur-xl transition-all duration-300 md:relative ${
-        expand ? "w-72" : "w-22"
-      }`}
+      className={`fixed z-40 h-screen border-r border-white/10 bg-slate-900/90 backdrop-blur-xl transition-all duration-300 md:relative ${expand ? "w-72" : "w-22"
+        }`}
     >
       <div className="flex h-full flex-col justify-between p-3">
         <div>
           <div className="flex items-center justify-between px-2 py-2">
             <div
-              className={`flex h-8 items-center justify-center rounded-xl bg-linear-to-br from-amber-400 to-orange-500 text-slate-950 shadow-lg shadow-amber-500/25 ${
-                expand ? "w-10" : "hidden"
-              }`}
+              className={`flex h-8 items-center justify-center rounded-xl bg-linear-to-br from-amber-400 to-orange-500 text-slate-950 shadow-lg shadow-amber-500/25 ${expand ? "w-10" : "hidden"
+                }`}
             >
               <Image src={icons.firstOrderAltBrandsSolidFull} alt="logo" width={15} height={15} />
             </div>
@@ -49,9 +47,8 @@ function Sidebar({ expand, setExpand, setprofile, onSelectChat,refreshTrigerHist
                 <button
                   key={index}
                   onClick={item.action}
-                  className={`group relative flex w-full items-center rounded-xl border border-transparent px-1.5 py-1 text-left transition ${
-                    expand ? "justify-start gap-3" : "justify-center"
-                  } hover:border-white/10 hover:bg-white/5`}
+                  className={`group relative flex w-full items-center rounded-xl border border-transparent px-1.5 py-1 text-left transition ${expand ? "justify-start gap-3" : "justify-center"
+                    } hover:border-white/10 hover:bg-white/5`}
                 >
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800 text-slate-200 ring-1 ring-white/5">
                     <Image src={item.icon} alt={item.label} width={15} height={15} />
@@ -69,7 +66,8 @@ function Sidebar({ expand, setExpand, setprofile, onSelectChat,refreshTrigerHist
             </div>
           </div>
 
-          <History expand={expand} onSelectChat={onSelectChat} refreshTrigerHistory={refreshTrigerHistory} />
+          <History expand={expand} setActiveChatId={setActiveChatId} onSelectChat={onSelectChat} refreshTrigerHistory={refreshTrigerHistory} />
+
         </div>
 
         <div className="mt-4 border-t border-white/10 p-3">

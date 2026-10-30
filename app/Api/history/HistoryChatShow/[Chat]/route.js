@@ -2,6 +2,24 @@ import { NextResponse } from "next/server";
 import Chat from "../../../../../model/Chat";
 import Message from "../../../../../model/massage";
 
+
+
+// import { NextResponse } from "next/server";
+
+// export async function GET(req, { params }) {
+//     console.log("DETAIL ROUTE HIT");
+
+//     const { chat } = await params;
+
+//     console.log("CHAT PARAM:", chat);
+
+//     return NextResponse.json({
+//         success: true,
+//         chat,
+//     });
+// }
+
+
 export async function GET(req, { params }) {
     console.log("chat bibw  hw1 dwiubeui feif bebfeh");
 
@@ -20,7 +38,7 @@ export async function GET(req, { params }) {
                     message: "No Chat Found"
                 },
                 {
-                    status: 401
+                    status: 404
                 }
             )
         }

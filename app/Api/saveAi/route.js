@@ -16,6 +16,18 @@ export async function POST(req) {
 
     const { aiMessageID, role, content, fullChatId } = body
 
+    if (!aiMessageID || !role || !content || !fullChatId) {
+      return NextResponse(
+        {
+          ok: false,
+          message: "somerhing went wrong"
+        },
+        {
+          status: 500
+        }
+      )
+    }
+
 
     const fullChatfound = await Chat.findOne({ fullChatId })
 
@@ -45,10 +57,11 @@ export async function POST(req) {
 
     if (!aicreaed) {
 
-      return NextResponse.json({ ok: true, message: "something went wrong" }, { status: 200 })
+      return NextResponse.json({ ok: false, message: "something went wrong" }, { status: 500 })
     }
 
 
+    return NextResponse.json({ ok: true, message: "AI store successfully" }, { status: 200 })
 
   } catch (error) {
     console.error(error);

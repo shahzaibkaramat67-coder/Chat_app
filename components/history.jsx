@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect,useCallback, useState } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import ChatMessages from "../app/chat/message/page"
 
-function History({ expand, onSelectChat, refreshTrigerHistory }) {
+function History({ expand, onSelectChat, setActiveChatId, refreshTrigerHistory }) {
   const [history, setHistory] = useState([]);
   const [chatId, setChatId] = useState("");
   // const [chatIdMessage, setChatIdMessae] = useState([])
@@ -11,28 +11,28 @@ function History({ expand, onSelectChat, refreshTrigerHistory }) {
 
   console.log("history :", history);
 
-   const fetchHistory =  useCallback(async() => {
-      try {
-        const res = await fetch("/Api/history",{
-         cache: "no-store",
-        })
+  const fetchHistory = useCallback(async () => {
+    try {
+      const res = await fetch("/Api/history", {
+        cache: "no-store",
+      })
 
-        if (!res.ok) {
-          console.log("Failed to fetch chat history");
-           return;
-        }
-
-        const result = await res.json();
-        setHistory(result.History)
-        
-        // setHistory(Array.isArray(data?.messages) ? data.messages : []);
-      } catch (error) {
-        console.error("History fetch error:", error);
+      if (!res.ok) {
+        console.log("Failed to fetch chat history");
+        return;
       }
-    }, []);
+
+      const result = await res.json();
+      setHistory(result.History)
+
+      // setHistory(Array.isArray(data?.messages) ? data.messages : []);
+    } catch (error) {
+      console.error("History fetch error:", error);
+    }
+  }, []);
 
 
-  
+
 
   useEffect(() => {
     fetchHistory();
@@ -40,23 +40,29 @@ function History({ expand, onSelectChat, refreshTrigerHistory }) {
 
 
 
-  const chatIdShow = async (chat) =>{
+  const chatIdShow = async (chat) => {
     const res = await fetch(`/Api/history/HistoryChatShow/${chat}`)
     if (res.ok) {
-      const data =await res.json()
-      if(data){
+      const data = await res.json()
+      console.log("Status:", res.status);
+      console.log("Response:", data);
+      if (data) {
         console.log("now data access data.messageList :", data.messageList);
-        
+
+        setActiveChatId(chat)
+        sessionStorage.setItem("activeChatId", chat)
+        sessionStorage.removeItem("draftChatId")
         onSelectChat(data.messageList)
-      }else{
+
+      } else {
 
         console.log("this is error data.messages :", data.messages);
       }
-     
-      
+
+
     }
   }
-  
+
 
   return (
     <div className={`${expand ? "block" : "hidden"} px-4 mt-8`}>
@@ -69,7 +75,7 @@ function History({ expand, onSelectChat, refreshTrigerHistory }) {
           history.map((item, index) => (
             <div
               key={item.fullChatId || index}
-              onClick={()=> chatIdShow(item.fullChatId)}
+              onClick={() => chatIdShow(item.fullChatId)}
               className="px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black cursor-pointer text-sm text-white-700"
             >
               {item.title || item.content || `History ${index + 1}`}

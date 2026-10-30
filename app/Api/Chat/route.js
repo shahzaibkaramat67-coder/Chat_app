@@ -78,7 +78,7 @@ export async function POST(req) {
 
 
       const createMessageForChat = await Message.create({
-        chatId: fullChat.id,
+        chatId: createChat._id,
         messageID: userMessageID,
         role: "user",
         content: text
@@ -90,7 +90,7 @@ export async function POST(req) {
     } else {
 
       const saveUserData = await Message.create({
-        chatId: fullChat.id,
+        chatId: fullChat._id,
         messageID: userMessageID,
         role: "user",
         content: text
@@ -113,6 +113,12 @@ export async function POST(req) {
     console.log("model :", choseModel);
 
     try {
+
+      console.log("Calling Gemini API:", {
+        chatId: fullChatId,
+        model: choseModel.model,
+        time: new Date().toISOString(),
+      });
 
       const result = await AiFunction(text, choseModel.model)
       console.log("this is from chat route result", result);
@@ -153,6 +159,17 @@ export async function POST(req) {
       }
     } catch (error) {
       console.error("Ai Streaming Error", error)
+
+      const status = error.status || error.statusCode || 500
+
+      return NextResponse.json(
+        {
+          ok: false,
+          message: status === 429 ? "AI Limit Hit Now Upgrade Your Limit" :
+            "something went wrong"
+        },
+        { status: status }
+      )
 
     }
 
