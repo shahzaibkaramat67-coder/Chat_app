@@ -51,7 +51,7 @@ export const mail = async (mail, name, type) => {
   
                   <div style="text-align: center; margin-top: 30px;">
                       <a 
-                          href="http://localhost:3000/${type === "Forgot" ? "updatePassword" : "login"}"
+                          href="http://localhost:3000/${type === "Forgot" ? "updatePassword?token=${encodeURIComponent(resetToken)}" : "login"}"
                           style="
                               background-color: #111827;
                               color: white;

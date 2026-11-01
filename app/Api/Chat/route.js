@@ -43,12 +43,12 @@ export async function POST(req) {
 
 
 
-    const { text, userMessageID, fullChatId, selectOPtion } = body;
+    const { text, userMessageID, fullChatId, selectOption } = body;
     console.log("this is also from chat route", text);
-    console.log("selectOPtion :", selectOPtion);
+    console.log("selectOPtion :", selectOption);
     console.log("fullChatId :", fullChatId);
 
-    if (!selectOPtion) {
+    if (!selectOption) {
       return NextResponse.json(
         {
           ok: false,
@@ -101,7 +101,7 @@ export async function POST(req) {
 
     // console.log("this is from chat route saveUserData", saveUserData);
 
-    const choseModel = model[selectOPtion]
+    const choseModel = model[selectOption]
 
     if (!choseModel) {
       return NextResponse.json(

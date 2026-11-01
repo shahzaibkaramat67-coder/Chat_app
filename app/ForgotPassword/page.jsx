@@ -1,46 +1,73 @@
 "use client"
 import Link from "next/link";
-import { useState } from "react";
+// import { useState } from "react";
+// import { useEffect } from "react";
+import { useState, useEffect } from "react";
+
 
 
 export default function ForgotPasswordPage() {
-    const [loading, setloading] = useState(false)
-    const [email, setemail] = useState({
-      email : ""
-    })
+  const [loading, setloading] = useState(false)
+  const [showMessage, setShowMessage] = useState("")
+  const [email, setemail] = useState({
+    email: ""
+  })
 
-    const changeHendler = (e) =>{
-      setemail({...email, email: e.target.value})
-    }
-const submitHendler = async(e)=>{
-  e.preventDefault()
 
-  
-  try {
-        setloading(true)
+  useEffect(() => {
+    if (!showMessage) return;
 
-        const res = await fetch("/ForgotPassword/Route", {
-          method : "post",
-          headers:{
-            "Content-type" : "application/json"
-          },
-          body : JSON.stringify(email)
-        })
+    const timer = setTimeout(() => {
+      setShowMessage("");
+    }, 2000);
 
-        const data = await res.json()
+    return () => clearTimeout(timer);
+  }, [showMessage]);
 
-        
-      } catch (error) {
-        console.error(error);
-        
+  const changeHendler = (e) => {
+    setemail({ ...email, email: e.target.value })
+  }
+  const submitHendler = async (e) => {
+    e.preventDefault()
+
+
+    try {
+      setloading(true)
+
+      const res = await fetch("/ForgotPassword/Route", {
+        method: "post",
+        headers: {
+          "Content-type": "application/json"
+        },
+        body: JSON.stringify(email)
+      })
+
+      const data = await res.json()
+      console.log("data", data);
+
+      if (data.ok) {
+        setShowMessage(data.message)
+        console.log("sucess full working backend");
       }
 
-}
+    } catch (error) {
+      console.error(error);
+
+    }
+
+  }
 
 
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      {showMessage && (
+        <div className="fixed top-5 right-5 z-9999 bg-red-500 text-white px-6 py-3 rounded-lg shadow-xl">
+          {showMessage}
+        </div>
+      )}
+
+
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
 
         {/* Heading */}
@@ -85,7 +112,7 @@ const submitHendler = async(e)=>{
         <p className="text-center text-sm text-gray-500 mt-6">
           Remember your password?{" "}
           <span className="text-amber-500 cursor-pointer hover:underline">
-           <Link href="login">Sign In</Link>
+            <Link href="login">Sign In</Link>
           </span>
         </p>
 

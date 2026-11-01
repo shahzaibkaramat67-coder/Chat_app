@@ -12,6 +12,7 @@ import Search from "@/components/search";
 import Project from "@/components/project";
 import UserInputSection from "@/app/chat/UserInput/page";
 import ChatMessages from "@/app/chat/message/page";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -28,6 +29,8 @@ export default function Home() {
   const [messages, setMessages] = useState([]);
   const [loading, setloading] = useState(false);
   const [refreshTrigerHistory, setRefreshTrigerHistory] = useState(0);
+
+  const router = useRouter()
   // const [error, setError] = useState("")
 
   // 1. Restore conversation after page refresh
@@ -42,6 +45,12 @@ export default function Home() {
           setDraftChatId(null)
 
           const res = await fetch(`/Api/history/HistoryChatShow/${saveActiveChatId}`)
+
+          if (res.status === 401) {
+            setMessages([])
+            router.replace("/login")
+            return
+          }
           if (res.ok) {
             const data = await res.json()
             setMessages(data.messageList || [])
@@ -101,39 +110,12 @@ export default function Home() {
 
 
 
-
-
-
-  const hendelNewChatCreate = async () => {
-    let ChatId = activeChatId;
-
-    if (!ChatId) {
-      const newChatApi = await fetch(`/Api/newChat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ newChatId: draftChatId })
-      });
-      console.log("newChatApi :", newChatApi);
-      const data = await newChatApi.json();
-      if (!newChatApi.ok) {
-        console.log("API response:", data.message);
-        return
-      }
-      // newChat = data.newChatId
-      // console.log("API response newChat:", newChat);
-      if (!newChatApi.ok) {
-        console.error("New chat creation failed:", data.message);
-        return;
-      }
-
-      ChatId = data.newChatId
-
-    }
-
-
+  if (!isInitialized) {
+    return
   }
+
+
+
 
 
   return (
@@ -205,7 +187,6 @@ export default function Home() {
             setloading={setloading}
             onHistoryrefresh={handleHistoryRefresh}
             activeChatId={activeChatId}
-            setActiveChatId={setActiveChatId}
             draftChatId={draftChatId}
             onChatCreated={handleChatCreated}
 

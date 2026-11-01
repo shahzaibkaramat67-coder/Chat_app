@@ -1,55 +1,89 @@
 "use client"
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+// import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 // import { email } from "zod";
 export default function SigninPage() {
 
+
   const [loading, setloading] = useState(false)
+  const [showMessage, setShowMessage] = useState("")
+  const [updatePassword, setupdatePassword] = useState({
+    newPassword: "",
+    confirmPassword: ""
+  })
+  const router = useRouter()
+  const searchParams = useSearchParams();
 
-const [updatePassword, setupdatePassword]  = useState({
-  newPassword : "",
-  confirmPassword : ""
-})
-
-const handleChange = (e)=>{
-  setupdatePassword({...updatePassword, [e.target.name] : e.target.value})
-}
-
-const submitHendler =async (e)=>{
-  e.preventDefault()
-
-  if (!updatePassword.confirmPassword || !updatePassword.newPassword) {
-    console.log("both fields are important");
+  const token = searchParams.get("token");
+  if (!token) {
+    alert("something went wrong")
   }
 
-  try {
+  useEffect(() => {
+    if (!showMessage) return;
 
-    setloading(true)
+    const timer = setTimeout(() => {
+      setShowMessage("");
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [showMessage]);
+
+
+
+
+  const handleChange = (e) => {
+    setupdatePassword({ ...updatePassword, [e.target.name]: e.target.value })
+  }
+
+  const submitHendler = async (e) => {
+
+    e.preventDefault()
+
+    const confirmPassword = updatePassword.confirmPassword
+    const newPassword = updatePassword.newPassword
+
+    if ((!confirmPassword || !newPassword)) {
+      alert("Both Fields are required")
+    }
+
+    if (confirmPassword !== newPassword) {
+      alert("password does not match")
+    }
+
+    try {
+
+      setloading(true)
 
       const res = await fetch("/updatePassword/updatePasswordRoute", {
-        method : "post",
-         headers :{
-          "Content-type" : "application/json"
-         },
-         body : JSON.stringify(updatePassword)
+        method: "post",
+        headers: {
+          "Content-type": "application/json"
+        },
+        body: JSON.stringify(newPassword, confirmPassword, token)
       })
       const data = await res.json()
       if (data.ok) {
-        console.log("data fetch successfully");
-        
+        setShowMessage(data.message)
+        console.log("sucess full working backend");
+        router.push("/login")
+
       }
 
 
-  } catch (error) {
-    console.error(error);
-    
+    } catch (error) {
+      console.error(error);
+
+    }
+
+
+
+    setloading(false)
+
   }
-
-   setloading(false)
-
-
-
-}
 
 
 
@@ -59,6 +93,11 @@ const submitHendler =async (e)=>{
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      {showMessage && (
+        <div className="fixed top-5 right-5 z-9999 bg-red-500 text-white px-6 py-3 rounded-lg shadow-xl">
+          {showMessage}
+        </div>
+      )}
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
 
         {/* Heading */}
@@ -67,7 +106,7 @@ const submitHendler =async (e)=>{
             Welcome back
           </h1>
           <p className="text-gray-500 text-sm mt-1">
-           Update Your Account Password
+            Update Your Account Password
           </p>
         </div>
 
@@ -80,10 +119,10 @@ const submitHendler =async (e)=>{
             <input
               id="newPassword"
               type="password"
-             value={updatePassword.newPassword}
+              value={updatePassword.newPassword}
               onChange={handleChange}
-               name="newPassword"
-               placeholder="••••••••"
+              name="newPassword"
+              placeholder="••••••••"
               className="w-full  text-black mt-1 px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
@@ -126,7 +165,7 @@ const submitHendler =async (e)=>{
           <div className="flex-1 h-px bg-gray-200" />
         </div>
 
-      
+
 
       </div>
     </div>

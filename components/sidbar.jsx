@@ -14,14 +14,13 @@ function Sidebar({ activeChatId, setActiveChatId, expand, setExpand, setprofile,
 
   return (
     <aside
-      className={`fixed z-40 h-screen border-r border-white/10 bg-slate-900/90 backdrop-blur-xl transition-all duration-300 md:relative ${expand ? "w-72" : "w-22"
-        }`}
+      className={`fixed z-40 h-screen border-r ${expand ? "w-72 border-white/10 bg-slate-900/90 backdrop-blur-xl transition-all duration-600 md:relative" : "hidden w-32"} `}
     >
       <div className="flex h-full flex-col justify-between p-3">
-        <div>
+        <div className="flex-col justify-center items-center">
           <div className="flex items-center justify-between px-2 py-2">
             <div
-              className={`flex h-8 items-center justify-center rounded-xl bg-linear-to-br from-amber-400 to-orange-500 text-slate-950 shadow-lg shadow-amber-500/25 ${expand ? "w-10" : "hidden"
+              className={`flex h-8 items-center justify-center rounded-xl bg-linear-to-br from-amber-400 to-orange-500 ${expand ? "" : "bg-amber-600"} shadow-lg shadow-amber-500/25 ${expand ? "w-10" : "hidden"
                 }`}
             >
               <Image src={icons.firstOrderAltBrandsSolidFull} alt="logo" width={15} height={15} />
@@ -35,7 +34,7 @@ function Sidebar({ activeChatId, setActiveChatId, expand, setExpand, setprofile,
             </button>
           </div>
 
-          <div className="space-y-2 px-2">
+          <div className={`space-y-2 px-2 ${expand ? "w-40" : "hidden"} `}>
             {expand && (
               <p className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
                 Features
@@ -70,14 +69,14 @@ function Sidebar({ activeChatId, setActiveChatId, expand, setExpand, setprofile,
 
         </div>
 
-        <div className="mt-4 border-t border-white/10 p-3">
+        <div className={`mt-4 border-t border-white/10 p-3 ${expand ? "w-68" : "hidden"} `}>
           <div className="flex items-center justify-between gap-3">
             {expand && <span className="text-sm font-medium text-slate-200">Profile</span>}
             <button
               onClick={() => setprofile(true)}
               className="ml-auto flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br from-amber-400 to-orange-500 text-slate-950 shadow-lg shadow-amber-500/25 transition hover:scale-105"
             >
-              <Image src={icons.circleUserSolidFull} alt="user" width={18} height={18} />
+              <Image src={icons.circleUserSolidFull} alt="user" width={14} height={14} />
             </button>
           </div>
         </div>

@@ -1,401 +1,253 @@
-//  "use client";
-    
-// import { checkCustomRoutes } from "next/dist/lib/load-custom-routes";
-// import { useRouter } from "next/navigation";
-// import React, { useState } from "react";
 
-const sendHendeler = async (setmessages, loading, setloading, onHistoryrefresh, activeChatId, setActiveChatId, onChatCreated) => {
-  if (!input.trim() || loading) return;
+"use client";
 
-  const userInput = input.trim();
-  const userMessageID = crypto.randomUUID();
-  const aiMessageID = crypto.randomUUID();
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
-  let ChatId = activeChatId;
+const UserInputSection = ({
+  setmessages,
+  loading,
+  setloading,
+  onHistoryrefresh,
+  activeChatId,
+  onChatCreated,
+  draftChatId,
+}) => {
+  const router = useRouter();
 
-  seterror("");
+  const [error, seterror] = useState("");
+  const [input, setInput] = useState("");
+  const [selectOption, setSelectOption] = useState("")
 
-  try {
-    // STEP 1: Create a MongoDB chat only if this is a new draft.
-    if (!ChatId) {
-      const newChatApi = await fetch("/Api/newChat", {
+  // Handle sending a new message
+  const handleSendMessage = async (e) => {
+    e?.preventDefault();
+
+    if (!input.trim() || loading) return;
+
+    const userInput = input.trim();
+
+    const userMessageID = crypto.randomUUID();
+    const aiMessageID = crypto.randomUUID();
+
+    let ChatId = activeChatId;
+
+    seterror("");
+    setloading(true);
+
+    try {
+      // STEP 1: Create MongoDB chat if this is a new chat.
+      if (!ChatId) {
+        if (!draftChatId) {
+          seterror("Draft chat ID is missing.");
+          return;
+        }
+
+        const newChatApi = await fetch("/Api/newChat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            newChatId: draftChatId,
+          }),
+        });
+
+        const data = await newChatApi.json();
+
+        if (newChatApi.status === 401) {
+          router.push("/login")
+          return
+        }
+
+        if (!newChatApi.ok) {
+          seterror(data.message || "Failed to create a new chat.");
+          return;
+        }
+
+        // Actual MongoDB chat ID.
+        ChatId = data.newChatId;
+
+        if (!ChatId) {
+          seterror("MongoDB chat ID was not returned.");
+          return;
+        }
+
+        // Update parent component.
+        onChatCreated?.(ChatId);
+      }
+
+      console.log("Actual MongoDB ChatId:", ChatId);
+
+      // STEP 2: Add user message to UI.
+      setmessages((prev) => [
+        ...prev,
+        {
+          id: userMessageID,
+          fullChatId: ChatId,
+          role: "user",
+          content: userInput,
+        },
+      ]);
+
+      // STEP 3: Add empty AI message.
+      setmessages((prev) => [
+        ...prev,
+        {
+          id: aiMessageID,
+          fullChatId: ChatId,
+          role: "assistant",
+          content: "",
+          loading: true,
+        },
+      ]);
+
+      setInput("");
+
+      // STEP 4: Send user message to AI API.
+      const res = await fetch("/Api/Chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          newChatId: draftChatId
+          text: userInput,
+          userMessageID,
+          fullChatId: ChatId,
+          selectOption,
         }),
       });
 
-      const data = await newChatApi.json();
+      // STEP 5: Handle authentication.
+      if (res.status === 401) {
+        const refreshToken = await fetch("/Api/refresh-token", {
+          method: "POST",
+          credentials: "include",
+        });
 
-      if (!newChatApi.ok) {
-        seterror(data.message || "Failed to create a new chat.");
+        if (!refreshToken.ok) {
+          router.push("/login");
+        } else {
+          seterror("Session refreshed. Please send your message again.");
+        }
+
         return;
       }
 
-      // Get the actual MongoDB chat ID.
-      ChatId = data.newChatId;
+      // STEP 6: Handle API errors.
+      if (!res.ok) {
+        const data = await res.json();
 
-      if (!ChatId) {
-        seterror("MongoDB chat ID was not returned.");
+        seterror(
+          data.message || "Failed to get an AI response."
+        );
+
         return;
       }
 
-      // Update Home component and sessionStorage.
-      onChatCreated(ChatId);
-    }
+      if (!res.body) {
+        seterror("No data received from AI.");
+        return;
+      }
 
-    console.log("Actual MongoDB ChatId:", ChatId);
+      // STEP 7: Read streaming AI response.
+      let fullText = "";
 
-    // STEP 2: Add the user's message to the UI.
-    setmessages((prev) => [
-      ...prev,
-      {
-        id: userMessageID,
-        fullChatId: ChatId,
-        role: "user",
-        content: userInput,
-      },
-    ]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
 
-    // STEP 3: Add an empty AI message while waiting.
-    setmessages((prev) => [
-      ...prev,
-      {
-        id: aiMessageID,
-        fullChatId: ChatId,
-        role: "assistant",
-        content: "",
-        loading: true,
-      },
-    ]);
+      while (true) {
+        const { value, done } = await reader.read();
 
-    setInput("");
-    setloading(true);
+        if (done) break;
 
-    // STEP 4: Send the user message to your AI API.
-    const res = await fetch("/Api/Chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        text: userInput,
-        userMessageID,
-        fullChatId: ChatId,
-        selectOPtion,
-      }),
-    });
+        const chunk = decoder.decode(value, {
+          stream: true,
+        });
 
-    // STEP 5: Handle authentication.
-    if (res.status === 401) {
-      const refreshToken = await fetch("/Api/refresh-token", {
+        fullText += chunk;
+
+        setmessages((prev) =>
+          prev.map((msg) =>
+            msg.id === aiMessageID
+              ? {
+                  ...msg,
+                  fullChatId: ChatId,
+                  content: fullText,
+                  loading: true,
+                }
+              : msg
+          )
+        );
+      }
+
+      fullText += decoder.decode();
+
+      // STEP 8: Mark AI response as complete.
+      setmessages((prev) =>
+        prev.map((msg) =>
+          msg.id === aiMessageID
+            ? {
+                ...msg,
+                content: fullText,
+                loading: false,
+              }
+            : msg
+        )
+      );
+
+      // STEP 9: Save AI response in MongoDB.
+      const saveAI = await fetch("/Api/saveAi", {
         method: "POST",
-        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          aiMessageID,
+          role: "assistant",
+          content: fullText,
+          fullChatId: ChatId,
+        }),
       });
 
-      route.push("/login");
-      return;
-    }
+      if (!saveAI.ok) {
+        const data = await saveAI.json();
 
-    // STEP 6: Handle API errors.
-    if (!res.ok) {
-      const data = await res.json();
-      seterror(data.message || "Failed to get an AI response.");
-      return;
-    }
+        seterror(
+          data.message || "Failed to save the AI response."
+        );
 
-    if (!res.body) {
-      seterror("No data received from AI.");
-      return;
-    }
+        return;
+      }
 
-    // STEP 7: Read the streaming AI response.
-    let fullText = "";
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
+      // STEP 10: Refresh sidebar history.
+      onHistoryrefresh?.();
 
-    while (true) {
-      const { value, done } = await reader.read();
+    } catch (err) {
+      console.error("Error sending message:", err);
 
-      if (done) break;
+      seterror("Something went wrong. Please try again.");
 
-      const chunk = decoder.decode(value, { stream: true });
-      fullText += chunk;
+    } finally {
+      setloading(false);
 
       setmessages((prev) =>
         prev.map((msg) =>
           msg.id === aiMessageID
             ? {
                 ...msg,
-                fullChatId: ChatId,
-                content: fullText,
-                loading: true,
+                loading: false,
               }
             : msg
         )
       );
     }
-
-    fullText += decoder.decode();
-
-    // STEP 8: Mark AI response as complete.
-    setmessages((prev) =>
-      prev.map((msg) =>
-        msg.id === aiMessageID
-          ? {
-              ...msg,
-              content: fullText,
-              loading: false,
-            }
-          : msg
-      )
-    );
-
-    // STEP 9: Save AI response in MongoDB.
-    const saveAI = await fetch("/Api/saveAi", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        aiMessageID,
-        role: "assistant",
-        content: fullText,
-        fullChatId: ChatId,
-      }),
-    });
-
-    if (!saveAI.ok) {
-      const data = await saveAI.json();
-      seterror(data.message || "Failed to save the AI response.");
-      return;
-    }
-
-    // STEP 10: Refresh sidebar history.
-    onHistoryrefresh?.();
-
-  } catch (err) {
-    console.error("Error sending message:", err);
-    seterror("Something went wrong. Please try again.");
-
-  } finally {
-    setloading(false);
-
-    setmessages((prev) =>
-      prev.map((msg) =>
-        msg.id === aiMessageID
-          ? { ...msg, loading: false }
-          : msg
-      )
-    );
-  }
+  };
 
 
 
 
-//  "use client";
-    
-// import { checkCustomRoutes } from "next/dist/lib/load-custom-routes";
-// import { useRouter } from "next/navigation";
-// import React, { useState } from "react";
-
-    
-
-
-
-
-// function UserInputSection({
-// setmessages, loading, setloading, onHistoryrefresh, activeChatId, setActiveChatId
-// }) {
-//     const [input, setInput] = useState("");
-//       // const [fullChatId, setFullChatId] = useState(null)
-//       const [selectOPtion, setSelectOPtion] = useState("");
-//       const [error, seterror] = useState("")
-//       const route = useRouter();
   
-
-
-//   console.log("selectOPtion:", selectOPtion);
-
-//   const sendHendeler = async () => {
-//     if (!input.trim()) return;
-
-//     const userInput = input.trim();
-//     const userMessageID = crypto.randomUUID();
-//     const aiMessageID = crypto.randomUUID();
-
-//     // Reuse the current chat ID or create one for a new chat.
-//     const ChatId = activeChatId || crypto.randomUUID();
-
-//     if (!activeChatId) {
-//       setActiveChatId(ChatId);
-//     }
-
-//     console.log("ChatId:", ChatId);
-
-//     // Clear any previous error.
-//     seterror("");
-
-//     // Add the user's message.
-//     setmessages((prev) => [
-//       ...prev,
-//       {
-//         id: userMessageID,
-//         fullChatId: ChatId,
-//         role: "user",
-//         content: userInput,
-//       },
-//     ]);
-
-//     // Add an empty AI message while waiting for the response.
-//     setmessages((prev) => [
-//       ...prev,
-//       {
-//         id: aiMessageID,
-//         fullChatId: ChatId,
-//         role: "assistant",
-//         content: "",
-//         loading: true,
-//       },
-//     ]);
-
-//     setInput("");
-//     setloading(true);
-
-//     try {
-//       // Send the user's message to the AI API.
-//       const res = await fetch("/Api/Chat", {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           text: userInput,
-//           userMessageID,
-//           fullChatId: ChatId,
-//           selectOPtion,
-//         }),
-//       });
-
-//       // Handle authentication errors.
-//       if (res.status === 401) {
-//         const refreshToken = await fetch("/Api/refresh-token", {
-//           method: "POST",
-//           credentials: "include",
-//         });
-
-//         // Preserve your existing redirect behavior.
-//         if (refreshToken.ok) {
-//           route.push("/login");
-//           return;
-//         }
-
-//         route.push("/login");
-//         return;
-//       }
-
-//       // Handle API errors.
-//       if (!res.ok) {
-//         const data = await res.json();
-//         seterror(data.message || "Failed to get an AI response.");
-//         return;
-//       }
-
-//       // Ensure the response body exists.
-//       if (!res.body) {
-//         seterror("No data received from AI.");
-//         return;
-//       }
-
-//       // Read the streaming AI response.
-//       let fullText = "";
-//       const reader = res.body.getReader();
-//       const decoder = new TextDecoder();
-
-//       while (true) {
-//         const { value, done } = await reader.read();
-
-//         if (done) break;
-
-//         const chunk = decoder.decode(value, { stream: true });
-//         fullText += chunk;
-
-//         setmessages((prev) =>
-//           prev.map((msg) =>
-//             msg.id === aiMessageID
-//               ? {
-//                   ...msg,
-//                   fullChatId: ChatId,
-//                   content: fullText,
-//                   loading: true,
-//                 }
-//               : msg
-//           )
-//         );
-//       }
-
-//       // Flush any remaining decoded characters.
-//       fullText += decoder.decode();
-
-//       // Mark the AI response as complete.
-//       setmessages((prev) =>
-//         prev.map((msg) =>
-//           msg.id === aiMessageID
-//             ? {
-//                 ...msg,
-//                 content: fullText,
-//                 loading: false,
-//               }
-//             : msg
-//         )
-//       );
-
-//       // Save the completed AI response.
-//       const saveAI = await fetch("/Api/saveAi", {
-//         method: "POST",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           aiMessageID,
-//           role: "assistant",
-//           content: fullText,
-//           fullChatId: ChatId,
-//         }),
-//       });
-
-//       if (!saveAI.ok) {
-//         const data = await saveAI.json();
-//         seterror(data.message || "Failed to save the AI response.");
-//         return;
-//       }
-
-//       // Refresh chat history after successful saving.
-//       onHistoryrefresh?.();
-//     } catch (err) {
-//       console.error("Error sending message:", err);
-//       seterror("Something went wrong. Please try again.");
-//     } finally {
-//       // Always stop loading, even when an error occurs.
-//       setloading(false);
-
-//       // Ensure the AI message is no longer marked as loading.
-//       setmessages((prev) =>
-//         prev.map((msg) =>
-//           msg.id === aiMessageID
-//             ? { ...msg, loading: false }
-//             : msg
-//         )
-//       );
-//     }
-//   };
-
-  // Keep the rest of your existing JSX here.
-
-
 
 return (
     <div className="flex flex-col items-center justify-center px-4 py-4 md:px-6 md:py-5">
@@ -410,14 +262,14 @@ return (
             disabled={loading}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") sendHendeler();
+              if (e.key === "Enter") handleSendMessage();
             }}
             placeholder="Type your message..."
             className="w-full bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none md:text-base"
           />
 
           <button
-            onClick={sendHendeler}
+            onClick={handleSendMessage}
             disabled={loading}
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-amber-400 to-orange-500 text-lg font-bold text-slate-950 shadow-lg shadow-amber-500/30 transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
           >
@@ -439,7 +291,7 @@ return (
 
           <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-slate-400">
             {/* {loading ? <span>Thinking…</span> : <span>Ready</span>} */}
-            <select value={selectOPtion} required onChange={(e) => setSelectOPtion(e.target.value)} id="model">
+            <select value={selectOption} required onChange={(e) => setSelectOption(e.target.value)} id="model">
               <option value="default">Choose model</option>
               <option value="gemini-2.5-flash-lite">gemini 2.5 flash-lite (free)</option>
               <option value="gemini-2.5-flash">gemini-2.5-flash (free)</option>
@@ -589,4 +441,204 @@ export default UserInputSection;
     //       onHistoryrefresh?.();
     //     }
     
+  
+  //  "use client";
+      
+  // import { checkCustomRoutes } from "next/dist/lib/load-custom-routes";
+  // import { useRouter } from "next/navigation";
+  // import React, { useState } from "react";
+  
+      
+  
+  
+  
+  
+  // function UserInputSection({
+  // setmessages, loading, setloading, onHistoryrefresh, activeChatId, setActiveChatId
+  // }) {
+  //     const [input, setInput] = useState("");
+  //       // const [fullChatId, setFullChatId] = useState(null)
+  //       const [selectOPtion, setSelectOPtion] = useState("");
+  //       const [error, seterror] = useState("")
+  //       const route = useRouter();
+    
+  
+  
+  //   console.log("selectOPtion:", selectOPtion);
+  
+  //   const sendHendeler = async () => {
+  //     if (!input.trim()) return;
+  
+  //     const userInput = input.trim();
+  //     const userMessageID = crypto.randomUUID();
+  //     const aiMessageID = crypto.randomUUID();
+  
+  //     // Reuse the current chat ID or create one for a new chat.
+  //     const ChatId = activeChatId || crypto.randomUUID();
+  
+  //     if (!activeChatId) {
+  //       setActiveChatId(ChatId);
+  //     }
+  
+  //     console.log("ChatId:", ChatId);
+  
+  //     // Clear any previous error.
+  //     seterror("");
+  
+  //     // Add the user's message.
+  //     setmessages((prev) => [
+  //       ...prev,
+  //       {
+  //         id: userMessageID,
+  //         fullChatId: ChatId,
+  //         role: "user",
+  //         content: userInput,
+  //       },
+  //     ]);
+  
+  //     // Add an empty AI message while waiting for the response.
+  //     setmessages((prev) => [
+  //       ...prev,
+  //       {
+  //         id: aiMessageID,
+  //         fullChatId: ChatId,
+  //         role: "assistant",
+  //         content: "",
+  //         loading: true,
+  //       },
+  //     ]);
+  
+  //     setInput("");
+  //     setloading(true);
+  
+  //     try {
+  //       // Send the user's message to the AI API.
+  //       const res = await fetch("/Api/Chat", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({
+  //           text: userInput,
+  //           userMessageID,
+  //           fullChatId: ChatId,
+  //           selectOPtion,
+  //         }),
+  //       });
+  
+  //       // Handle authentication errors.
+  //       if (res.status === 401) {
+  //         const refreshToken = await fetch("/Api/refresh-token", {
+  //           method: "POST",
+  //           credentials: "include",
+  //         });
+  
+  //         // Preserve your existing redirect behavior.
+  //         if (refreshToken.ok) {
+  //           route.push("/login");
+  //           return;
+  //         }
+  
+  //         route.push("/login");
+  //         return;
+  //       }
+  
+  //       // Handle API errors.
+  //       if (!res.ok) {
+  //         const data = await res.json();
+  //         seterror(data.message || "Failed to get an AI response.");
+  //         return;
+  //       }
+  
+  //       // Ensure the response body exists.
+  //       if (!res.body) {
+  //         seterror("No data received from AI.");
+  //         return;
+  //       }
+  
+  //       // Read the streaming AI response.
+  //       let fullText = "";
+  //       const reader = res.body.getReader();
+  //       const decoder = new TextDecoder();
+  
+  //       while (true) {
+  //         const { value, done } = await reader.read();
+  
+  //         if (done) break;
+  
+  //         const chunk = decoder.decode(value, { stream: true });
+  //         fullText += chunk;
+  
+  //         setmessages((prev) =>
+  //           prev.map((msg) =>
+  //             msg.id === aiMessageID
+  //               ? {
+  //                   ...msg,
+  //                   fullChatId: ChatId,
+  //                   content: fullText,
+  //                   loading: true,
+  //                 }
+  //               : msg
+  //           )
+  //         );
+  //       }
+  
+  //       // Flush any remaining decoded characters.
+  //       fullText += decoder.decode();
+  
+  //       // Mark the AI response as complete.
+  //       setmessages((prev) =>
+  //         prev.map((msg) =>
+  //           msg.id === aiMessageID
+  //             ? {
+  //                 ...msg,
+  //                 content: fullText,
+  //                 loading: false,
+  //               }
+  //             : msg
+  //         )
+  //       );
+  
+  //       // Save the completed AI response.
+  //       const saveAI = await fetch("/Api/saveAi", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({
+  //           aiMessageID,
+  //           role: "assistant",
+  //           content: fullText,
+  //           fullChatId: ChatId,
+  //         }),
+  //       });
+  
+  //       if (!saveAI.ok) {
+  //         const data = await saveAI.json();
+  //         seterror(data.message || "Failed to save the AI response.");
+  //         return;
+  //       }
+  
+  //       // Refresh chat history after successful saving.
+  //       onHistoryrefresh?.();
+  //     } catch (err) {
+  //       console.error("Error sending message:", err);
+  //       seterror("Something went wrong. Please try again.");
+  //     } finally {
+  //       // Always stop loading, even when an error occurs.
+  //       setloading(false);
+  
+  //       // Ensure the AI message is no longer marked as loading.
+  //       setmessages((prev) =>
+  //         prev.map((msg) =>
+  //           msg.id === aiMessageID
+  //             ? { ...msg, loading: false }
+  //             : msg
+  //         )
+  //       );
+  //     }
+  //   };
+  
+    // Keep the rest of your existing JSX here.
+  
     //   };

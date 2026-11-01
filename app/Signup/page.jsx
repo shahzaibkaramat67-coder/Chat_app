@@ -1,8 +1,8 @@
 "use client"
-import React, { useState } from 'react'
 import Link from "next/link";
 import { signIn } from 'next-auth/react';
 import z from 'zod';
+import { useState, useEffect } from "react";
 
 
 const schema = z.object({
@@ -30,16 +30,28 @@ function SignupPage() {
     password: ""
   })
 
+
+  useEffect(() => {
+    if (!showMessage) return;
+
+    const timer = setTimeout(() => {
+      setShowMessage("");
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [showMessage]);
+
+
   //  const name = Signup.name
   //   const email =  Signup.email
   //   const password =  Signup.password
-   showMessage = ""
+  // showMessage("")
   const handleChange = (e) => {
     setSignup({ ...Signup, [e.target.name]: e.target.value })
   }
 
   const handleSubmit = async (e) => {
-      e.preventDefault();
+    e.preventDefault();
 
 
 
@@ -64,30 +76,30 @@ function SignupPage() {
       // console.log("res", res);
       const data = await res.json()
       console.log("data", data);
-    
+
       if (data.ok) {
         setShowMessage(data.message)
-        console.log("sucess full working backend");      
+        console.log("sucess full working backend");
       }
 
-    // console.log("data", data);
+      // console.log("data", data);
 
-      
+
     } catch (error) {
       console.error(error);
     } finally {
-          setloading(false)
+      setloading(false)
     }
 
 
 
 
-   
+
 
   }
 
- async function google_Auth() {
-   
+  async function google_Auth() {
+
     signIn("google")
 
   }
@@ -100,8 +112,10 @@ function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-     {showMessage && (
-         <h1 className="text-red-500">{showMessage}</h1>
+      {showMessage && (
+        <div className="fixed top-5 right-5 z-9999 bg-red-500 text-white px-6 py-3 rounded-lg shadow-xl">
+          {showMessage}
+        </div>
       )}
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
 
@@ -126,8 +140,8 @@ function SignupPage() {
               id="name"
               type="text"
               name="name"
-                value={Signup.name}
-                onChange={handleChange}
+              value={Signup.name}
+              onChange={handleChange}
               placeholder="John Doe"
               className="w-full  text-black mt-1 px-4 py-2  border rounded-lg outline-none focus:ring-2 focus:ring-amber-500"
             />
@@ -140,8 +154,8 @@ function SignupPage() {
               id="email"
               type="email"
               name="email"
-                value={Signup.email}
-                onChange={handleChange}
+              value={Signup.email}
+              onChange={handleChange}
               placeholder="you@example.com"
               className="w-full  text-black mt-1 px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500"
             />
@@ -154,8 +168,8 @@ function SignupPage() {
               id="password"
               type="password"
               name="password"
-                value={Signup.password}
-                onChange={handleChange}
+              value={Signup.password}
+              onChange={handleChange}
               placeholder="••••••••"
               className="w-full mt-1  text-black px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500"
             />
@@ -167,8 +181,8 @@ function SignupPage() {
             type="submit"
             disabled={loading}
             className={`mt-2 w-full py-2 rounded-lg text-white font-medium transition ${loading
-                ? "bg-amber-300 cursor-not-allowed"
-                : "bg-amber-500 hover:bg-amber-600"
+              ? "bg-amber-300 cursor-not-allowed"
+              : "bg-amber-500 hover:bg-amber-600"
               }`}
           >
             {loading ? "Creating account..." : "Sign Up"}
